@@ -1,0 +1,10 @@
+# to test > gcloud meta list-files-for-upload DIRECTORY
+.gcloudignore
+.git
+.gitignore
+.secrets
+.attic
+# safeguard
+*
+# and also all in .gitignore
+#!include:.gitignore
