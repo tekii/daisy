@@ -68,10 +68,14 @@ instance/
 
 # PEP 582; used by e.g. github.com/David-OConnor/pyflow
 __pypackages__/
-
+__pycache__
+.pytest_cache
 # Environments
 venv/
-venv.bak/
+venv_bak/
+*_venv/
+
+
 
 # mypy
 .mypy_cache/
@@ -80,3 +84,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+#
+pytest.ini

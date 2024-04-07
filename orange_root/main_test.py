@@ -1,9 +1,7 @@
-from contextlib import nullcontext
 import json
-import base64
-import pathlib
+#import base64
 import pytest
-from typing import Any
+#from typing import Any
 
 # from flask import
 # import pretend
@@ -23,16 +21,13 @@ from typing import Any
 
 @pytest.fixture
 def client():
-    from importlib.util import spec_from_file_location, module_from_spec
-
-    # from importlib.machinery import SourceFileLoader
-    source = pathlib.Path(__file__).resolve().parent / "orange.py"
-    # spec = spec_from_loader("main", SourceFileLoader("main", str(source)))
-    spec = spec_from_file_location("__test__", str(source))
-    main = module_from_spec(spec)
-    spec.loader.exec_module(main)
-    # main = SourceFileLoader("main", str(source)).load_module()
-    return main.app.test_client()
+    import pathlib
+    from functions_framework import create_app
+    source = pathlib.Path(__file__).resolve().parent / "main.py"
+    target = "the_function"
+    _app = create_app(target, source, "http")
+    # _app.testing = True
+    return _app.test_client()
 
 
 @pytest.fixture

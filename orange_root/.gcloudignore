@@ -2,6 +2,6 @@
 __pycache__
 .pytest_cache
 *_test.*
-*_deploy.??
-*_build.??
+*deploy.??
 venv*
+rd.txt
