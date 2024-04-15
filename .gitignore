@@ -87,3 +87,4 @@ dmypy.json
 
 #
 pytest.ini
+.attic

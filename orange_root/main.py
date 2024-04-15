@@ -1,27 +1,69 @@
+import os
+import json
+
+# from urllib import response
 import functions_framework
-from flask import abort, jsonify
+from flask import jsonify, abort
 
-#_PROJECT_NUMBER = os.environ.get("PROJECT_NUMBER", "952137789881")
+from trazamed import getRelay
 
-# Max INT64 value encoded as a number in JSON by TO_JSON_STRING. Larger values are encoded as
-# strings.
-# See https://cloud.google.com/bigquery/docs/reference/standard-sql/json_functions#json_encodings
-_MAX_LOSSLESS=9007199254740992
+_AGENT_CREDENTIALS = json.loads(os.environ.get("AGENT_CREDENTIALS"))
+
+
+@functions_framework.errorhandler(ZeroDivisionError)
+def handle_zero_division(e):
+    return "I'm a teapot", 418
+
+
+@functions_framework.errorhandler(401)
+def handle_401(e):
+    # aqui puede manejar si reitenta o aborta
+    return jsonify({"errorMessage": f"AGENT problem: {repr(e)}"}), 401
 
 
 @functions_framework.http
 def the_function(request):
     """ """
     try:
-        return_value = []
         request_json = request.get_json()
-        
-        calls = request_json['calls']
-        for call in calls:
-            return_value.append(sum([int(x) if isinstance(x, str) else x for x in call if x is not None]))
 
-        replies = [str(x) if x > _MAX_LOSSLESS or x < -_MAX_LOSSLESS else x for x in return_value]
-        return jsonify( { "replies" :  replies } )
+        try:
+            operation = request_json["userDefinedContext"]["operation"]
+            calls = request_json["calls"]
+        except KeyError as e:
+            return jsonify({"errorMessage": f"BAD REQUEST problem: {repr(e)}"}), 400
 
-    except Exception as e:
-        abort(400, description=(f"Some problem: {repr(e)}"))
+        # if _AGENT_CREDENTIALS is None:
+        #    abort(401,"_AGENT_CREDENTIALS is None")
+
+        # relay = getRelay(operation)
+        replies = []
+
+        for call_args in calls:
+
+            agent = call_args[0]
+
+            agent_credentials = _AGENT_CREDENTIALS.get(agent)
+            if agent_credentials is None:
+                abort(401, "Unauthorized agent")
+
+            r = relay(agent_credentials, call_args)
+            # encode response
+            # https://cloud.google.com/bigquery/docs/remote-functions#json_encoding_of_sql_data_type
+            replies.append(r)
+            # return_value.append(sum([int(x) if isinstance(x, str) else x for x in call if x is not None]))
+
+        # replies = [str(x) if x > _MAX_LOSSLESS or x < -_MAX_LOSSLESS else x for x in return_value]
+        return jsonify({"replies": replies})
+
+    except ZeroDivisionError as e:
+        # https://cloud.google.com/bigquery/docs/remote-functions#http_response_code
+        # https://cloud.google.com/bigquery/docs/remote-functions#output_format
+        # aqui hay que generar el repsonse con el errorMessage
+        # esto esta mal porque siempre da 400
+        return jsonify({"errorMessage": f"Some unhandled problem: {repr(e)}"}), 500
+
+
+# Your endpoint should return the HTTP response code 200 for a successful response.
+# When BigQuery receives any other value, BigQuery considers the response as a failure,
+# and retries when the HTTP response code is 408, 429, 500, 503 or 504 until some internal limit.

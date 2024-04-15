@@ -1,3 +1,4 @@
 Flask
 functions-framework
 google-cloud-logging
+zeep
