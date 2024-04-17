@@ -1,5 +1,4 @@
 import json
-from typing import Any
 
 # from urllib import request
 # import base64
@@ -8,7 +7,6 @@ from typing import Any
 import pathlib
 import pytest
 
-# from flask import
 # import pretend
 
 
@@ -19,141 +17,220 @@ import pytest
 #    monkeypatch.setenv(DAISY_SUBJECT_ACCOUNTS, "PR@legacy.tekii.com.ar;QUEUE@margot.tekii.com.ar")
 
 
-# @pytest.fixture(autouse=True)
-# def disable_validate_chat_authorization(monkeypatch):
-#    monkeypatch.setattr(helpers.auth, "validate_chat_authorization", lambda request, audience: (None))
-
-_TEST_AGENT_GLN = "glnws"
+@pytest.fixture(autouse=True, name="TEST_AGENT")
+def fake_agent():
+    return "glnws"
 
 
-@pytest.fixture(autouse=True)
-def set_agent_credentials(monkeypatch):
-    _credentials = json.dumps({_TEST_AGENT_GLN: {"user": "pruebasws", "pass": "Clave1234"}})
-    monkeypatch.setenv("AGENT_CREDENTIALS", _credentials)
+# @pytest.fixture  # (autouse=True)
+# def recover_agent_gredentials_patched(monkeypatch, TEST_AGENT):
+#    # pylint: disable=C0415
+#    # import main
+#
+#    monkeypatch.setattr(
+#        main,
+#        "recover_agent_gredentials",
+#        lambda: {TEST_AGENT: {"user": "pruebasws", "pass": "Clave1234"}},
+#    )
+
+
+# @pytest.fixture
+# def client():
+#    pylint: disable=C0415
+# from functions_framework import create_app
+#
+# source = pathlib.Path(__file__).resolve().parent / "main.py"
+# target = "the_function"
+# _app = create_app(target, source, "http")
+# _app.testing = True
+# return _app.test_client()
 
 
 @pytest.fixture
-def client():
-    from functions_framework import create_app
-
-    source = pathlib.Path(__file__).resolve().parent / "main.py"
-    target = "the_function"
-    _app = create_app(target, source, "http")
-    _app.testing = True
-    return _app.test_client()
-
-
-@pytest.fixture
-def post_method():
+def post_method():  # monkeypatch, TEST_AGENT):
+    # pylint: disable=C0415
     from functions_framework import create_app
 
     _source = pathlib.Path(__file__).resolve().parent / "main.py"
     _app = create_app("the_function", _source, "http")
+
+    # this controls if the exceptions propagate to the test or are handled by the subject and return http 500.
     _app.testing = True
     _client = _app.test_client()
 
-    def _the_post_method(**kw: Any):
-        return _client.post(
-            "/",
-            # data=json.dumps(getTNC_DATA),
-            content_type="application/json",
-            **kw
-        )
-        pass
+    # monkeypatch.setattr(
+    #    ,
+    #    "recover_agent_gredentials",
+    #    lambda: {TEST_AGENT: {"user": "pruebasws", "pass": "Clave1234"}},
+    # )
 
-    return _the_post_method
+    return lambda **kw: _client.post("/", content_type="application/json", **kw)
 
 
-@pytest.fixture
-def C_01():
-    return {"calls": [[None, 1, "", "abc"], ["abc", "9007199254740993", None, None]]}
+@pytest.fixture(name="DUMMY_ONE_CALL")
+def call_01(TEST_AGENT):
+    return [[TEST_AGENT, 1]]
 
 
-@pytest.fixture
-def REQUEST_01(C_01):
+@pytest.fixture(name="DUMMY_TWO_CALLS")
+def call_02(TEST_AGENT):
+    return [[TEST_AGENT, 1], [TEST_AGENT, 1]]
+
+
+@pytest.fixture(name="DUMMY_REQUEST")
+def dummy_request_a(DUMMY_ONE_CALL):
     return {
         "requestId": "124ab1c",
-        "caller": "//bigquery.googleapis.com/projects/myproject/jobs/myproject:US.bquxjob_5b4c112c_17961fafeaf",
+        "caller": "//dummy.example.com/projects/dummy/jobs/dummy:US.dummy_id",
         "sessionUser": "test-user@test-company.com",
-        "userDefinedContext": {"key1": "value1", "key2": "v2"},
-        "calls": [[None, 1, "", "abc"], ["abc", "9007199254740993", None, None]],
+        "userDefinedContext": {"soap_operation": "getTransaccionesWS"},
+        "calls": DUMMY_ONE_CALL,
     }
 
 
-@pytest.fixture
-def getTNC_UDC():
-    return {"operation": "getTransaccionesNoConfirmadas"}
+@pytest.fixture(name="TNC_UDC")
+def get_tnc_udc():
+    return {"operation": "getTransaccionesWS", "mode": "mock"}
 
 
-@pytest.fixture
-def getTNC_CALLS_00():
+@pytest.fixture(name="TNC_CALLS_00")
+def get_tnc_calls_00(TEST_AGENT):
     return [
-        [_TEST_AGENT_GLN, "b", None, "2024-02-02"],
-        [_TEST_AGENT_GLN, "b", 2, "2024-02-02"],
-        [_TEST_AGENT_GLN, "b", 2, "2024-02-02"],
+        [TEST_AGENT, 1, None, "2024-02-02"],
+        [TEST_AGENT, 2, 2, "2024-02-02"],
+        [TEST_AGENT, 3, 2, "2024-02-02"],
     ]
 
 
-@pytest.fixture
-def getTNC_DATA(getTNC_UDC, getTNC_CALLS_00):
-    """getTransaccionesNoConfirmadas MOCK DATA"""
+@pytest.fixture(name="TNC_DATA")
+def get_tnc_data(TNC_UDC, DUMMY_ONE_CALL):
     return {
         "requestId": "124ab1c",
-        "caller": "//bigquery.googleapis.com/projects/myproject/jobs/myproject:US.bquxjob_5b4c112c_17961fafeaf",
+        "caller": "//dummy.example.com/projects/dummy/jobs/dummy:US.dummy_id",
         "sessionUser": "test-user@test-company.com",
-        "userDefinedContext": getTNC_UDC,
-        "calls": getTNC_CALLS_00,
+        "userDefinedContext": TNC_UDC,
+        "calls": DUMMY_ONE_CALL,
     }
 
 
-@pytest.mark.skip(reason="no way of currently testing this")
-def test_01(client, REQUEST_01):
-    response = client.post(
-        "/",
-        data=json.dumps(
-            {
-                "requestId": "124ab1c",
-                "caller": "//bigquery.googleapis.com/projects/myproject/jobs/myproject:US.bquxjob_5b4c112c_17961fafeaf",
-                "sessionUser": "test-user@test-company.com",
-                "userDefinedContext": {"key1": "value1", "key2": "v2"},
-                "calls": [[None, 1, "", "abc"], ["abc", "9007199254740993", None, None]],
-            }
-        ),
-        content_type="application/json",
-    )
-    assert response.status_code == 200
-    assert response.data == b'{"text":"Thanks for adding me to a DM, Human One!"}\n'
+#
+#
+#
 
 
-def test_02(post_method, getTNC_DATA):
-    response = post_method(data=json.dumps(getTNC_DATA))
-    assert response.status_code == 200
-    assert response.data == b'{"replies":[[null,1,2,"tree"],[null,1,2,"tree"],[null,1,2,"tree"]]}\n'
-    assert json.dumps(json.loads(response.data), sort_keys=True) == json.dumps(
-        json.loads(b'{"replies":[[null,1,2,"tree"],[null,1,2,"tree"],[null,1,2,"tree"]]}\n'),
-        sort_keys=True,
-    )
+# def test_02(post_method, TNC_DATA):
+#    response = post_method(data=json.dumps(TNC_DATA))
+#    assert response.status_code == 200
+#    assert response.data == b'{"replies":[[null,1,2,"tree"],[null,1,2,"tree"],[null,1,2,"tree"]]}\n'
+#    assert json.dumps(json.loads(response.data), sort_keys=True) == json.dumps(
+#        json.loads(b'{"replies":[[null,1,2,"tree"],[null,1,2,"tree"],[null,1,2,"tree"]]}\n'),
+#        sort_keys=True,
+#    )
 
 
-def test_http_401_from_undefined_agent_credential(post_method, getTNC_DATA, monkeypatch):
-    # deletes the test credentials
-    import main
+# @pytest.mark.secret_credentials
+# def test_http_401_from_undefined_agent_credential(post_method, TNC_DATA, monkeypatch):
+#    # pylint: disable=C0415
+#    # import main
+#
+#    monkeypatch.setattr(main, "_AGENT_CREDENTIALS", None)
+#    response = post_method(data=json.dumps(TNC_DATA))
+#    assert response.status_code == 401
 
-    monkeypatch.setattr(main, "_AGENT_CREDENTIALS", None)
-    response = post_method(data=json.dumps(getTNC_DATA))
+
+# @pytest.mark.secret_credentials
+# def test_http_401_from_unauthorized_agent_credential(post_method, TNC_DATA, monkeypatch):
+#    # put some different credential
+#    # pylint: disable=C0415
+#    import main
+#
+#    monkeypatch.setattr(
+#        main,
+#        "recover_agent_gredentials",
+#        lambda: {"glnws": {"user": "pruebasws", "pass": "---------"}},
+#    )
+#
+#    response = post_method(data=json.dumps(TNC_DATA))
+#    assert response.status_code == 401
+
+
+## pylint: disable=W0613
+# def test_http_401_from_trazmed_webservice(post_method, TNC_DATA, monkeypatch):
+#    pass
+
+
+@pytest.mark.bad_request
+def test_request_user_defined_context_is_missing(post_method, DUMMY_REQUEST):
+    del DUMMY_REQUEST["userDefinedContext"]
+    response = post_method(data=json.dumps(DUMMY_REQUEST))
+    assert response.status_code == 400
+    assert response.data == b'{"errorMessage":"Missing key \'userDefinedContext\' accesing userDefinedContext."}\n'
+
+
+@pytest.mark.bad_request
+def test_request_calls_is_missing(post_method, DUMMY_REQUEST):
+    del DUMMY_REQUEST["calls"]
+    response = post_method(data=json.dumps(DUMMY_REQUEST))
+    assert response.status_code == 400
+    assert response.data == b'{"errorMessage":"Missing [calls]."}\n'
+
+
+@pytest.mark.agent_credentials
+def test_unauthorized_agent(post_method, DUMMY_REQUEST):
+    DUMMY_REQUEST["calls"][0][0] = "0000000000001"
+    response = post_method(data=json.dumps(DUMMY_REQUEST))
     assert response.status_code == 401
+    assert response.data == b'{"errorMessage":"Unauthorized agent: 0000000000001"}\n'
 
 
-def test_http_401_from_unauthorized_agent_credential(post_method, getTNC_DATA, monkeypatch):
-    # put some different credential
-    import main
-
-    monkeypatch.setattr(
-        main, "_AGENT_CREDENTIALS", {"0000": {"user": "pruebasws", "pass": "Clave1234"}}
-    )
-    response = post_method(data=json.dumps(getTNC_DATA))
-    assert response.status_code == 401
+@pytest.mark.mock_dataset
+def test_mock_dateset_some(post_method, DUMMY_REQUEST):
+    DUMMY_REQUEST["userDefinedContext"]["mock_dataset"] = ""
+    response = post_method(data=json.dumps(DUMMY_REQUEST))
+    assert response.status_code == 200
 
 
-def test_http_401_from_trazmed_webservice(client, getTNC_DATA, monkeypatch):
-    pass
+@pytest.mark.mock_dataset
+def test_mock_dateset_single_call_single_page(post_method, DUMMY_REQUEST):
+    DUMMY_REQUEST["userDefinedContext"]["mock_dataset"] = ""
+    DUMMY_REQUEST["calls"][0][1] = 1
+    response = post_method(data=json.dumps(DUMMY_REQUEST))
+    assert response.status_code == 200
+    data = json.loads(response.data)
+    assert "replies" in data
+    replies = data["replies"]
+    assert len(replies) == 1
+    reply = replies[0]
+    assert len(reply) == 50
+
+
+@pytest.mark.mock_dataset
+def test_mock_dateset_10_calls_all_pages(post_method, DUMMY_REQUEST):
+    DUMMY_REQUEST["userDefinedContext"]["mock_dataset"] = ""
+    DUMMY_REQUEST["calls"] = []
+    for page in range(1, 11):
+        DUMMY_REQUEST["calls"].append(["glnws", page])
+    response = post_method(data=json.dumps(DUMMY_REQUEST))
+    assert response.status_code == 200
+    data = json.loads(response.data)
+    assert "replies" in data
+    replies = data["replies"]
+    # 460 rows
+    assert len(replies) == 10
+    assert len(replies.pop()) == 10
+    for reply in replies:
+        assert len(reply) == 50
+
+
+@pytest.mark.mock_dataset
+def test_mock_dateset_single_call_no_result(post_method, DUMMY_REQUEST):
+    DUMMY_REQUEST["userDefinedContext"]["mock_dataset"] = ""
+    DUMMY_REQUEST["calls"][0][1] = 11
+    response = post_method(data=json.dumps(DUMMY_REQUEST))
+    assert response.status_code == 200
+    data = json.loads(response.data)
+    assert "replies" in data
+    replies = data["replies"]
+    assert len(replies) == 1
+    reply = replies[0]
+    assert len(reply) == 0

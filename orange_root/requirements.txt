@@ -1,4 +1,5 @@
 Flask
 functions-framework
+google-cloud-secret-manager
 google-cloud-logging
 zeep

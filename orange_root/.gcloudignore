@@ -1,7 +1,11 @@
 .gcloudignore
+.attic
+.vscode
 __pycache__
 .pytest_cache
 *_test.*
-*deploy.??
-venv*
+*.sh
+venv
 README.md
+*secret*
+pytest.ini
