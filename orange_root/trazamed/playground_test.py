@@ -13,7 +13,7 @@ import pytest
 @pytest.fixture(name="target_service")
 def service():
 
-    wsdl_uri = pathlib.Path(__file__).resolve().parent.joinpath("trazamed", "trazamed.wsdl").as_uri()
+    wsdl_uri = pathlib.Path(__file__).resolve().parent.joinpath("trazamed.wsdl").as_uri()
     settings = Settings(strict=False, xml_huge_tree=False, force_https=True, raw_response=False)
     wsse = UsernameToken("testwservice", "testwservicepsw")
     client = Client(wsdl=wsdl_uri, settings=settings, wsse=wsse, plugins=[])
@@ -161,7 +161,7 @@ def test_06(target_service):
     response = target_service.getTransaccionesWS(
         "pruebasws",
         "Clave1234",
-        arg9="01/01/2023 02:46",
+        arg9="01/02/2023 02:46",
         arg10="31/02/2023",
         # arg13="R000120191004",
         arg16=1,  # ,        arg17=10, parece que retorna de a 100
