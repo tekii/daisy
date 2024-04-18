@@ -7,5 +7,5 @@ __pycache__
 *.sh
 venv
 README.md
-*secret*
+*secret.json
 pytest.ini

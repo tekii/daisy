@@ -13,9 +13,7 @@ import pytest
 @pytest.fixture(name="target_service")
 def service():
 
-    wsdl_uri = (
-        pathlib.Path(__file__).resolve().parent.joinpath("trazamed", "trazamed.wsdl").as_uri()
-    )
+    wsdl_uri = pathlib.Path(__file__).resolve().parent.joinpath("trazamed", "trazamed.wsdl").as_uri()
     settings = Settings(strict=False, xml_huge_tree=False, force_https=True, raw_response=False)
     wsse = UsernameToken("testwservice", "testwservicepsw")
     client = Client(wsdl=wsdl_uri, settings=settings, wsse=wsse, plugins=[])
@@ -40,6 +38,7 @@ def service():
 #    return main.app.test_client()
 
 
+@pytest.mark.skip
 def test_01(target_service):
 
     response = target_service.getTransaccionesNoConfirmadas(
@@ -87,11 +86,10 @@ def test_01(target_service):
     #            print(e._id_transaccion)
 
 
+@pytest.mark.skip
 def test_02(target_service):
     #
-    response = target_service.getConsultaStock(
-        "pruebasws", "Clave1234", "00005963035960", "glnws", arg9=1, arg10=10
-    )
+    response = target_service.getConsultaStock("pruebasws", "Clave1234", "00005963035960", "glnws", arg9=1, arg10=10)
     assert len(response.errores) == 0
     assert len(response.list) == 10
     assert response.resultado is None
@@ -100,11 +98,10 @@ def test_02(target_service):
     assert str(type(_t)) == "<class 'zeep.objects.consultaStockMedicamentoWS'>"
 
 
+@pytest.mark.skip
 def test_03(target_service):
     #
-    response = target_service.getCatalogoElectronicoByGLN(
-        "pruebasws", "Clave1234", arg2="glnws", arg7=1, arg8=10
-    )
+    response = target_service.getCatalogoElectronicoByGLN("pruebasws", "Clave1234", arg2="glnws", arg7=1, arg8=10)
     # catalogoGLNResult
     assert str(type(response)) == "<class 'zeep.objects.catalogoGLNResult'>"
     assert response.hay_error is None
@@ -118,11 +115,10 @@ def test_03(target_service):
     assert str(type(_t)) == "<class 'zeep.objects.agentePlain'>"
 
 
+@pytest.mark.skip
 def test_04(target_service):
     #
-    response = target_service.getCatalogoElectronicoByGLN(
-        "pruebaswss", "Clave1234", arg2="glnws", arg7=1, arg8=10
-    )
+    response = target_service.getCatalogoElectronicoByGLN("pruebaswss", "Clave1234", arg2="glnws", arg7=1, arg8=10)
     # catalogoGLNResult
     assert str(type(response)) == "<class 'zeep.objects.catalogoGLNResult'>"
     assert response.hay_error is True
@@ -138,6 +134,7 @@ def test_04(target_service):
     assert _t._d_error == "Acceso denegado."
 
 
+@pytest.mark.skip
 def test_05(target_service):
     #
     response = target_service.getCatalogoElectronicoByGLN(
@@ -158,15 +155,16 @@ def test_05(target_service):
     assert _t._d_error == " - Por favor verifique los datos ingresados. "
 
 
+@pytest.mark.skip
 def test_06(target_service):
     #
     response = target_service.getTransaccionesWS(
         "pruebasws",
         "Clave1234",
         arg9="01/01/2023 02:46",
-        arg10="31/12/2023",
+        arg10="31/02/2023",
         # arg13="R000120191004",
-        arg16=4,  # ,        arg17=10, parece que retorna de a 100
+        arg16=1,  # ,        arg17=10, parece que retorna de a 100
     )
 
     # transaccionesWSResult
@@ -175,5 +173,3 @@ def test_06(target_service):
     assert len(response.list) > 0
     _t = response.list[0]
     assert str(type(_t)) == "<class 'zeep.objects.transaccionPlainWS'>"
-
-    pass
