@@ -2,7 +2,7 @@
 .attic
 .vscode
 __pycache__
-.pytest_cache
+*_cache
 *_test.*
 *.sh
 venv

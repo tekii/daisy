@@ -48,15 +48,11 @@ _mock_data = mock_data_f()
 
 
 def mock_page(_, args):
-    page = args[1]
+    page_num = args[1]
     PAGE_LENGHT = 50
-    start = (page - 1) * PAGE_LENGHT
-    data = _mock_data[start : start + PAGE_LENGHT]
-    return data
-    # if len(page) == 0:
-    #    return None
-    # else:
-    #    return page
+    start = (page_num - 1) * PAGE_LENGHT
+    page_data = _mock_data[start : start + PAGE_LENGHT]
+    return None if len(page_data) == 0 else page_data
 
 
 def get_relay(operation):

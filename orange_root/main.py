@@ -9,18 +9,17 @@ import mock
 def recover_agent_gredentials():
     # pylint: disable=C0415
     import json
+    from google.cloud import secretmanager
 
-    # from google.cloud import secretmanager
-    #
-    ## Create the Secret Manager client.
-    # client = secretmanager.SecretManagerServiceClient()
-    ## Build the resource name of the secret version.
-    # project_id = "daisy-dev01"
-    # name = f"projects/{project_id}/secrets/AGENT_CREDENTIALS/versions/latest"
-    # response = client.access_secret_version(name=name)
-    ## Return the decoded payload.
-    # secret = response.payload.data.decode("UTF-8")
-    secret = json.dumps({"glnws": {"user": "pruebasws", "pass": "Clave1234"}})
+    # Create the Secret Manager client.
+    client = secretmanager.SecretManagerServiceClient()
+    # Build the resource name of the secret version.
+    project_id = "daisy-dev01"
+    name = f"projects/{project_id}/secrets/AGENT_CREDENTIALS/versions/latest"
+    response = client.access_secret_version(name=name)
+    # Return the decoded payload.
+    secret = response.payload.data.decode("UTF-8")
+    # secret = json.dumps({"glnws": {"user": "pruebasws", "pass": "Clave1234"}})
     return json.loads(secret)
 
 
@@ -34,7 +33,7 @@ def handle_zero_division(e):
 
 @functions_framework.errorhandler(400)
 def handle_400(e):
-    # logging.critical(msg=msg)
+    logging.error(msg=e.description)
     return jsonify({"errorMessage": e.description}), 400
 
 
@@ -115,8 +114,7 @@ def the_function(request):
 # elif __name__ == "__test__":
 #    pass
 # else:
-#    import google.cloud.logging
-#
-#    _client = google.cloud.logging.Client()
-#    _client.setup_logging(log_level=logging.DEBUG)
-#
+import google.cloud.logging
+
+_client = google.cloud.logging.Client()
+_client.setup_logging(log_level=logging.DEBUG)

@@ -233,4 +233,4 @@ def test_mock_dateset_single_call_no_result(post_method, DUMMY_REQUEST):
     replies = data["replies"]
     assert len(replies) == 1
     reply = replies[0]
-    assert len(reply) == 0
+    assert reply is None
