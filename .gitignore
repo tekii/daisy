@@ -88,3 +88,5 @@ dmypy.json
 #
 pytest.ini
 .attic
+
+secret.json
