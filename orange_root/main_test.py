@@ -1,20 +1,8 @@
 import json
 
 # from urllib import request
-# import base64
-
-# from typing import Any
 import pathlib
 import pytest
-
-# import pretend
-
-
-# @pytest.fixture(autouse=True)
-# def mock_secrets(monkeypatch):
-#    from main import DAISY_SUBJECT_ACCOUNTS
-#
-#    monkeypatch.setenv(DAISY_SUBJECT_ACCOUNTS, "PR@legacy.tekii.com.ar;QUEUE@margot.tekii.com.ar")
 
 
 @pytest.fixture(autouse=True, name="TEST_AGENT")
@@ -22,32 +10,8 @@ def fake_agent():
     return "glnws"
 
 
-# @pytest.fixture  # (autouse=True)
-# def recover_agent_gredentials_patched(monkeypatch, TEST_AGENT):
-#    # pylint: disable=C0415
-#    # import main
-#
-#    monkeypatch.setattr(
-#        main,
-#        "recover_agent_gredentials",
-#        lambda: {TEST_AGENT: {"user": "pruebasws", "pass": "Clave1234"}},
-#    )
-
-
-# @pytest.fixture
-# def client():
-#    pylint: disable=C0415
-# from functions_framework import create_app
-#
-# source = pathlib.Path(__file__).resolve().parent / "main.py"
-# target = "the_function"
-# _app = create_app(target, source, "http")
-# _app.testing = True
-# return _app.test_client()
-
-
 @pytest.fixture
-def post_method():  # monkeypatch, TEST_AGENT):
+def post_method(monkeypatch, TEST_AGENT):
     # pylint: disable=C0415
     from functions_framework import create_app
 
@@ -58,11 +22,15 @@ def post_method():  # monkeypatch, TEST_AGENT):
     _app.testing = True
     _client = _app.test_client()
 
-    # monkeypatch.setattr(
-    #    ,
-    #    "recover_agent_gredentials",
-    #    lambda: {TEST_AGENT: {"user": "pruebasws", "pass": "Clave1234"}},
-    # )
+    # this is a hack until i found how to acces the loaded module from the app,
+    # its important to avoid the module to loas twice
+    import main
+
+    monkeypatch.setattr(
+        main,
+        "recover_agent_credentials",
+        lambda: {TEST_AGENT: {"user": "pruebasws", "pass": "Clave1234"}},
+    )
 
     return lambda **kw: _client.post("/", content_type="application/json", **kw)
 

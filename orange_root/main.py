@@ -6,7 +6,7 @@ from flask import jsonify, abort
 import mock
 
 
-def recover_agent_gredentials():
+def recover_agent_credentials():
     # pylint: disable=C0415
     import json
     from google.cloud import secretmanager
@@ -23,7 +23,7 @@ def recover_agent_gredentials():
     return json.loads(secret)
 
 
-AGENT_CREDENTIALS = None
+_AGENT_CREDENTIALS = None
 
 
 @functions_framework.errorhandler(ZeroDivisionError)
@@ -47,9 +47,9 @@ def handle_401(e):
 def the_function(request):
     try:
         # pylint: disable=W0603
-        global AGENT_CREDENTIALS
-        if AGENT_CREDENTIALS is None:
-            AGENT_CREDENTIALS = recover_agent_gredentials()
+        global _AGENT_CREDENTIALS
+        if _AGENT_CREDENTIALS is None:
+            _AGENT_CREDENTIALS = recover_agent_credentials()
 
         request_json = request.get_json()
 
@@ -82,7 +82,7 @@ def the_function(request):
             # first is the agent to use
             agent = call_args[0]
             # credentials 4 this call
-            credentials = AGENT_CREDENTIALS.get(agent)
+            credentials = _AGENT_CREDENTIALS.get(agent)
             # unfortunatly we los all replies if this fails.
             if credentials is None:
                 abort(401, f"Unauthorized agent: {agent}")
@@ -111,10 +111,10 @@ def the_function(request):
 #
 # if __name__ == "__main__":
 #    pass
-# elif __name__ == "__test__":
-#    pass
-# else:
-import google.cloud.logging
+if __name__ == "__test__":
+    pass
+else:
+    import google.cloud.logging
 
-_client = google.cloud.logging.Client()
-_client.setup_logging(log_level=logging.DEBUG)
+    _client = google.cloud.logging.Client()
+    _client.setup_logging(log_level=logging.DEBUG)
