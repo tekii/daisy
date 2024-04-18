@@ -1,4 +1,3 @@
 # daisy
 
-https://cloud.google.com/memorystore
-
+some text here please.
