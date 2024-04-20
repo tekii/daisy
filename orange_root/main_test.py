@@ -23,7 +23,7 @@ def post_method(monkeypatch, TEST_AGENT):
     _client = _app.test_client()
 
     # this is a hack until i found how to acces the loaded module from the app,
-    # its important to avoid the module to loas twice
+    # its important to avoid the module to load twice and override the patch
     import main
 
     monkeypatch.setattr(

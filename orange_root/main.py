@@ -2,7 +2,7 @@ import logging
 import functions_framework
 from flask import jsonify, abort
 
-# from trazamed import getRelay
+import marshalled_api
 import mock
 
 
@@ -23,6 +23,7 @@ def recover_agent_credentials():
     return json.loads(secret)
 
 
+# the problem initializing this here is that we dont want to run this before the monkeypatch
 _AGENT_CREDENTIALS = None
 
 
@@ -70,6 +71,11 @@ def the_function(request):
 
         # get the soap operation to call
         operation = mock.get_relay(udc_soap_operation)
+
+        # which operation
+        operation: marshalled_api.Marshal | None = marshalled_api.MARSHALS.get(udc_soap_operation)
+        if operation is None:
+            abort(401, f"Unkown soap operation{udc_soap_operation}.")
 
         # recover the calls arguments array
         calls = request_json.get("calls")

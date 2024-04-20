@@ -1,33 +1,32 @@
 """ Trazmed """
 
-from datetime import date
-import string
+# mypy: disable-error-code="valid-type"
 
-# from typing import List
-
+from datetime import date, datetime
+from typing import List
 import pathlib
 
 from zeep import Client, Settings
 from zeep.wsse.username import UsernameToken
 from zeep.plugins import Plugin, HistoryPlugin
+from zeep.transports import Transport
 
 __version__ = "0.0.1"
 __all__ = [
-    "getRelay",
+    "API",
 ]
 
-type GLN = string
-type GTIN = string
-type FC = string
+# mypy: disable-error-code="valid-type"
+type GLN = str
+type GTIN = str
+type FC = str
 
 
 class TrazamedService:
 
     def __init__(self):
 
-        wsdl_uri = (
-            pathlib.Path(__file__).resolve().parent.joinpath("trazamed", "trazamed.wsdl").as_uri()
-        )
+        wsdl_uri = pathlib.Path(__file__).resolve().parent.joinpath("trazamed", "trazamed.wsdl").as_uri()
         settings = Settings(strict=False, xml_huge_tree=False, force_https=True, raw_response=False)
         wsse = UsernameToken("testwservice", "testwservicepsw")
         client = Client(wsdl=wsdl_uri, settings=settings, wsse=wsse, plugins=[])
@@ -40,85 +39,70 @@ class TrazamedService:
         def __init__(self):
             pass
 
-    def getTransacciones(self, credentials) -> TransaccionesResult | None:
-        return None
 
-
-class TransaccionesNoConfirmadasWSResult:
+class TransaccionesNoConfirmadasResponse:
     pass
 
 
-def getTransaccionesNoConfirmadas(
-    usuarioAgente: string,
-    usuarioPassword: string,
-    transaccionGlobal: int = None,
-    agenteInformador: GLN = None,
-    agenteOrigen: GLN = None,
-    agenteDestino: GLN = None,
-    medicamento: GTIN = None,
-    evento: int = None,
-    transaccionDesde: date = None,
-    transaccionHasta: date = None,
-    operacionesde: date = None,
-    operacionHasta: date = None,
-    vencimientoDesde: date = None,
-    vencimientoHasta: date = None,
-    remito: FC = None,
-    factura: FC = None,
-    estado: int = None,
-    lote: string = None,
-    serie: string = None,
-    pagina: int = None,
-    paginaMaxLen: int = None,
-) -> TransaccionesNoConfirmadasWSResult | None:
-    return None
+class TransaccionesResponse:
+    pass
 
 
-## getEnviosPropiosAlertados
-## getConsultaStock
-# history = HistoryPlugin()
-# wsdl = pathlib.Path(__file__).resolve().parent / "trazamed.wsdl"
-## wsdl='https://servicios.pami.org.ar/trazamed.WebService?wsdl'
-# wsdl = wsdl.as_uri()
-# settings = Settings(strict=False, xml_huge_tree=False, force_https=True, raw_response=False)
-# wsse = UsernameToken("testwservice", "testwservicepsw")
-# client = Client(wsdl=wsdl, settings=settings, wsse=wsse, plugins=[history])
-# service = client.create_service(
-#    binding_name="{http://business.mywebservice.inssjp.com/}IWebServiceSoapBinding",
-#    address="https://servicios.pami.org.ar/trazamed.WebService",
-# )
+class API:
+    """Python friendly wrapper arround the not so beautiful Trazamed SOAP API"""
 
+    def __init__(self) -> None:
+        pass
 
-# def getTransaccionesNoConfirmadas_relay(agent_credentials: dict, call: list):
-#
-#    the_response = service.getTransaccionesNoConfirmadas(
-#        "pruebasws",
-#        "Clave1234",
-#        None,
-#        None,
-#        None,
-#        "glnws",
-#        None,
-#        None,
-#        "01/01/2024",
-#        "15/01/2024",
-#        arg19=2,
-#        arg20=2,
-#    )
-#
-#    if not the_response.hay_error:
-#        print(len(the_response.list))
-#        print(the_response.cantPaginas)
-#        for e in the_response.list:
-#
-#            print(e._id_transaccion)
-#
-#    return [None, 1, 2, "tree"]
-#
+    def get_transacciones_no_confirmadas(
+        self,
+        agente_informador: GLN,
+        # usuario_agente: str,  # change this to interna dict
+        # usuario_password: str,
+        transaccion_global: int | None = None,  # arg2
+        agente_origen: GLN | None = None,  # arg3
+        agente_destino: GLN | None = None,  # arg4
+        medicamento: GTIN | None = None,  # arg5
+        evento: int | None = None,  # arg6
+        operacion_desde: date | None = None,  # arg7
+        operacion_hasta: date | None = None,  # arg8
+        transaccion_desde: datetime | None = None,  # arg9
+        transaccion_hasta: datetime | None = None,  # arg10
+        vencimiento_desde: date | None = None,  # arg11
+        vencimiento_hasta: date | None = None,  # arg12
+        remito: FC | None = None,  # arg13
+        factura: FC | None = None,  # arg14
+        estado: int | None = None,  # arg15
+        lote: str | None = None,  # arg16
+        serie: str | None = None,  # arg??
+        arg18: str | None = None,  # arg18
+        pagina: int | None = None,  # arg19
+        paginaMaxLen: int | None = None,  # arg20
+        mock_dataset: bool = False,
+    ) -> TransaccionesNoConfirmadasResponse | None:
+        return None
 
-
-def getRelay(operation: string):
-    if operation == "getTransaccionesNoConfirmadas":
-        return getTransaccionesNoConfirmadas_relay
-    else:
-        abort(500, description="Invalid operation: {operation}")
+    def get_transacciones(
+        self,
+        agente_informador: GLN,
+        # usuario_agente: str,  # change this to interna dict
+        # usuario_password: str,
+        transaccion_global: int | None = None,  # arg2
+        agente_origen: GLN | None = None,  # arg3
+        agente_destino: GLN | None = None,  # arg4
+        medicamento: GTIN | None = None,  # arg5
+        evento: int | None = None,  # arg6
+        operacion_desde: date | None = None,  # arg7
+        operacion_hasta: date | None = None,  # arg8
+        transaccion_desde: datetime | None = None,  # arg9
+        transaccion_hasta: datetime | None = None,  # arg10
+        vencimiento_desde: date | None = None,  # arg11
+        vencimiento_hasta: date | None = None,  # arg12
+        remito: FC | None = None,  # arg13
+        factura: FC | None = None,  # arg14
+        estado: int | None = None,  # arg15
+        pagina: int | None = None,  # arg16
+        paginaMaxLen: int | None = None,  # arg17
+        mock_dataset: bool = False,
+    ) -> TransaccionesResponse | None:
+        return None
