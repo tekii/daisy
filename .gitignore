@@ -90,3 +90,4 @@ pytest.ini
 .attic
 
 secret.json
+bot_root
