@@ -2,7 +2,7 @@ import logging
 import functions_framework
 from flask import jsonify, abort
 
-import marshalled_api
+from marshalled_api import *
 import mock
 
 
@@ -20,6 +20,7 @@ def recover_agent_credentials():
     # Return the decoded payload.
     secret = response.payload.data.decode("UTF-8")
     # secret = json.dumps({"glnws": {"user": "pruebasws", "pass": "Clave1234"}})
+    # TODO: some structural check here to avoid an error or the need of checking in the call itself
     return json.loads(secret)
 
 
@@ -56,7 +57,7 @@ def the_function(request):
 
         # setup from udc
         udc_mock_data = False
-        udc_modes = None
+        udc_modes = None  # full | stripped
         udc_log_diagnostics = None
         udc_operation = None  # todo, change to default
         try:
@@ -69,11 +70,8 @@ def the_function(request):
         except KeyError as e:
             abort(400, f"Missing key {e} accesing userDefinedContext.")
 
-        # get the soap operation to call
-        operation = mock.get_relay(udc_soap_operation)
-
         # which operation
-        operation: marshalled_api.Marshal | None = marshalled_api.MARSHALS.get(udc_soap_operation)
+        operation: Marshal | None = get_marshal(udc_soap_operation)
         if operation is None:
             abort(401, f"Unkown soap operation{udc_soap_operation}.")
 
@@ -88,12 +86,15 @@ def the_function(request):
             # first is the agent to use
             agent = call_args[0]
             # credentials 4 this call
-            credentials = _AGENT_CREDENTIALS.get(agent)
+            agent_credentials = _AGENT_CREDENTIALS.get(agent)
             # unfortunatly we los all replies if this fails.
-            if credentials is None:
-                abort(401, f"Unauthorized agent: {agent}")
+            if agent_credentials is None:
+                abort(401, f"Unauthorized or Undefined credentials for agent: {agent}")
 
-            r = operation(credentials, call_args)
+            try:
+                r = operation(*call_args, agent_credentials=agent_credentials, mock_data=udc_mock_data)
+            except MarshalError as e:
+                abort(400, f"Some Error marshalling/un the args or the response: {e.description}.")
             # encode response
             # https://cloud.google.com/bigquery/docs/remote-functions#json_encoding_of_sql_data_type
             replies.append(r)

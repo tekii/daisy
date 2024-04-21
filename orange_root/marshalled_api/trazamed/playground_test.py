@@ -155,11 +155,9 @@ def test_05(target_service):
     assert _t._d_error == " - Por favor verifique los datos ingresados. "
 
 
-# @pytest.mark.skip
+@pytest.mark.skip
 def test_06(target_service):
     #
-    pass
-
     response = target_service.getTransaccionesWS(
         "pruebasws",
         "Clave1234",

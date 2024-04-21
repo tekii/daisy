@@ -4,12 +4,14 @@ import pytest
 import marshalled_api
 
 
-def test_get_transacciones_args_00():
-    operation = "GET_TRANSACCIONES"
-    _marshal = marshalled_api.MARSHALS[operation]
-    assert isinstance(_marshal, marshalled_api.Marshal)
-    assert isinstance(_marshal, marshalled_api._GetTransacciones)
-    args = [
+@pytest.fixture(name="the_agent_credentials")
+def agent_credentials():
+    return {"user": "pruebasws", "password": "Clave1234"}
+
+
+@pytest.fixture()  # name="THE_ARGS")
+def complete_args():
+    return [
         "0000000000000",
         1,
         "0000000000000",
@@ -18,8 +20,8 @@ def test_get_transacciones_args_00():
         0,
         "2024-12-31",
         "2024-12-31",
-        "2024-12-31 23:59Z-03",
-        "2024-12-31 23:59Z-03",
+        "2024-12-31T23:59-03:00",
+        "2024-12-31T23:59",
         "2024-12-31",
         "2024-12-31",
         "R002300000000",
@@ -29,36 +31,55 @@ def test_get_transacciones_args_00():
         100,
         True,
     ]
-    r = _marshal(*args, mock_dataset=True)
-    # r = _marshal(agente_informador="0000000000000", mock_dataset=True)
+
+
+def test_get_transacciones_args_full(complete_args, the_agent_credentials):
+    operation = "GET_TRANSACCIONES"
+    marshal = marshalled_api.get_marshal(operation)
+    assert isinstance(marshal, marshalled_api.Marshal)
+    assert isinstance(marshal, marshalled_api._GetTransacciones)
+    _ = marshal(*complete_args, agent_credentials=the_agent_credentials, mock_data=True)
     pass
 
 
-def test_get_transacciones_args_null():
+@pytest.mark.bad_request
+@pytest.mark.marshal_error
+def test_get_transacciones_args_invalid_isoformat(complete_args, the_agent_credentials):
     operation = "GET_TRANSACCIONES"
-    _marshal = marshalled_api.MARSHALS[operation]
-    assert isinstance(_marshal, marshalled_api.Marshal)
-    assert isinstance(_marshal, marshalled_api._GetTransacciones)
-    args = [
+    marshal = marshalled_api.get_marshal(operation)
+    assert isinstance(marshal, marshalled_api.Marshal)
+    assert isinstance(marshal, marshalled_api._GetTransacciones)
+    invalid = complete_args
+    invalid[8] = "2024-12-31T23:59Z03:00"
+    with pytest.raises(marshalled_api.MarshalError) as e_info:
+        _ = marshal(*complete_args, agent_credentials=the_agent_credentials, mock_data=True)
+    pass
+
+
+def test_get_transacciones_args_all_nulls(the_agent_credentials):
+    operation = "GET_TRANSACCIONES"
+    marshal = marshalled_api.get_marshal(operation)
+    assert isinstance(marshal, marshalled_api.Marshal)
+    assert isinstance(marshal, marshalled_api._GetTransacciones)
+    all_null_args = [
         "0000000000000",
-        "null",
-        "null",
-        "null",
-        "null",
-        "null",
-        "null",
-        "null",
-        "null",
-        "null",
-        "null",
-        "null",
-        "null",
-        "null",
-        "null",
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
         1,
         100,
         True,
     ]
-    r = _marshal(*args, mock_dataset=True)
-    # r = _marshal(agente_informador="0000000000000", mock_dataset=True)
+    r = marshal(*all_null_args, agent_credentials=the_agent_credentials, mock_data=True)
     pass

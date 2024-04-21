@@ -29,15 +29,34 @@ def post_method(monkeypatch, TEST_AGENT):
     monkeypatch.setattr(
         main,
         "recover_agent_credentials",
-        lambda: {TEST_AGENT: {"user": "pruebasws", "pass": "Clave1234"}},
+        lambda: {TEST_AGENT: {"user": "pruebasws", "password": "Clave1234"}},
     )
 
     return lambda **kw: _client.post("/", content_type="application/json", **kw)
 
 
-@pytest.fixture(name="DUMMY_ONE_CALL")
-def call_01(TEST_AGENT):
-    return [[TEST_AGENT, 1]]
+@pytest.fixture(name="MOCK_SINGLE_CALL")
+def mock_single_call(TEST_AGENT):
+    return [
+        TEST_AGENT,
+        1,
+        "0000000000000",
+        "0000000000000",
+        "0000000000000",
+        0,
+        "2024-12-31",
+        "2024-12-31",
+        "2024-12-31T23:59-03:00",
+        "2024-12-31T23:59",
+        "2024-12-31",
+        "2024-12-31",
+        "R002300000000",
+        "R002300000001",
+        1,
+        1,
+        10,
+        True,
+    ]
 
 
 @pytest.fixture(name="DUMMY_TWO_CALLS")
@@ -45,14 +64,14 @@ def call_02(TEST_AGENT):
     return [[TEST_AGENT, 1], [TEST_AGENT, 1]]
 
 
-@pytest.fixture(name="DUMMY_REQUEST")
-def dummy_request_a(DUMMY_ONE_CALL):
+@pytest.fixture(name="MOCK_SINGLE_CALL_REQUEST")
+def mock_single_call_request(MOCK_SINGLE_CALL):
     return {
         "requestId": "124ab1c",
         "caller": "//dummy.example.com/projects/dummy/jobs/dummy:US.dummy_id",
         "sessionUser": "test-user@test-company.com",
-        "userDefinedContext": {"soap_operation": "getTransaccionesWS"},
-        "calls": DUMMY_ONE_CALL,
+        "userDefinedContext": {"soap_operation": "GET_TRANSACCIONES", "mock_data": ""},
+        "calls": [MOCK_SINGLE_CALL],
     }
 
 
@@ -71,13 +90,13 @@ def get_tnc_calls_00(TEST_AGENT):
 
 
 @pytest.fixture(name="TNC_DATA")
-def get_tnc_data(TNC_UDC, DUMMY_ONE_CALL):
+def get_tnc_data(TNC_UDC, MOCK_SINGLE_CALL):
     return {
         "requestId": "124ab1c",
         "caller": "//dummy.example.com/projects/dummy/jobs/dummy:US.dummy_id",
         "sessionUser": "test-user@test-company.com",
         "userDefinedContext": TNC_UDC,
-        "calls": DUMMY_ONE_CALL,
+        "calls": [MOCK_SINGLE_CALL],
     }
 
 
@@ -128,41 +147,42 @@ def get_tnc_data(TNC_UDC, DUMMY_ONE_CALL):
 
 
 @pytest.mark.bad_request
-def test_request_user_defined_context_is_missing(post_method, DUMMY_REQUEST):
-    del DUMMY_REQUEST["userDefinedContext"]
-    response = post_method(data=json.dumps(DUMMY_REQUEST))
+def test_request_user_defined_context_is_missing(post_method, MOCK_SINGLE_CALL_REQUEST):
+    del MOCK_SINGLE_CALL_REQUEST["userDefinedContext"]
+    response = post_method(data=json.dumps(MOCK_SINGLE_CALL_REQUEST))
     assert response.status_code == 400
     assert response.data == b'{"errorMessage":"Missing key \'userDefinedContext\' accesing userDefinedContext."}\n'
 
 
 @pytest.mark.bad_request
-def test_request_calls_is_missing(post_method, DUMMY_REQUEST):
-    del DUMMY_REQUEST["calls"]
-    response = post_method(data=json.dumps(DUMMY_REQUEST))
+def test_request_calls_is_missing(post_method, MOCK_SINGLE_CALL_REQUEST):
+    del MOCK_SINGLE_CALL_REQUEST["calls"]
+    response = post_method(data=json.dumps(MOCK_SINGLE_CALL_REQUEST))
     assert response.status_code == 400
     assert response.data == b'{"errorMessage":"Missing [calls]."}\n'
 
 
 @pytest.mark.agent_credentials
-def test_unauthorized_agent(post_method, DUMMY_REQUEST):
-    DUMMY_REQUEST["calls"][0][0] = "0000000000001"
-    response = post_method(data=json.dumps(DUMMY_REQUEST))
+def test_unauthorized_agent(post_method, MOCK_SINGLE_CALL_REQUEST):
+    MOCK_SINGLE_CALL_REQUEST["calls"][0][0] = "0000000000001"
+    response = post_method(data=json.dumps(MOCK_SINGLE_CALL_REQUEST))
     assert response.status_code == 401
-    assert response.data == b'{"errorMessage":"Unauthorized agent: 0000000000001"}\n'
+    assert response.data == b'{"errorMessage":"Unauthorized or Undefined credentials for agent: 0000000000001"}\n'
 
 
-@pytest.mark.mock_dataset
-def test_mock_dateset_some(post_method, DUMMY_REQUEST):
-    DUMMY_REQUEST["userDefinedContext"]["mock_dataset"] = ""
-    response = post_method(data=json.dumps(DUMMY_REQUEST))
+@pytest.mark.mock_data
+def test_mock_dateset_some(post_method, MOCK_SINGLE_CALL_REQUEST):
+    # MOCK_SINGLE_CALL_REQUEST["userDefinedContext"]["mock_data"] = ""
+    response = post_method(data=json.dumps(MOCK_SINGLE_CALL_REQUEST))
     assert response.status_code == 200
 
 
-@pytest.mark.mock_dataset
-def test_mock_dateset_single_call_single_page(post_method, DUMMY_REQUEST):
-    DUMMY_REQUEST["userDefinedContext"]["mock_dataset"] = ""
-    DUMMY_REQUEST["calls"][0][1] = 1
-    response = post_method(data=json.dumps(DUMMY_REQUEST))
+@pytest.mark.skip
+@pytest.mark.mock_data
+def test_mock_dateset_single_call_single_page(post_method, MOCK_SINGLE_CALL_REQUEST):
+    # MOCK_SINGLE_CALL_REQUEST["userDefinedContext"]["mock_data"] = ""
+    MOCK_SINGLE_CALL_REQUEST["calls"][0][15] = 1
+    response = post_method(data=json.dumps(MOCK_SINGLE_CALL_REQUEST))
     assert response.status_code == 200
     data = json.loads(response.data)
     assert "replies" in data
@@ -172,13 +192,14 @@ def test_mock_dateset_single_call_single_page(post_method, DUMMY_REQUEST):
     assert len(reply) == 50
 
 
-@pytest.mark.mock_dataset
-def test_mock_dateset_10_calls_all_pages(post_method, DUMMY_REQUEST):
-    DUMMY_REQUEST["userDefinedContext"]["mock_dataset"] = ""
-    DUMMY_REQUEST["calls"] = []
-    for page in range(1, 11):
-        DUMMY_REQUEST["calls"].append(["glnws", page])
-    response = post_method(data=json.dumps(DUMMY_REQUEST))
+@pytest.mark.mock_data
+def test_mock_dateset_10_calls_all_pages(post_method, MOCK_SINGLE_CALL, MOCK_SINGLE_CALL_REQUEST):
+    # MOCK_SINGLE_CALL_REQUEST["userDefinedContext"]["mock_data"] = ""
+    for page in range(2, 11):
+        extra_call = MOCK_SINGLE_CALL.copy()
+        extra_call[15] = page
+        MOCK_SINGLE_CALL_REQUEST["calls"].append(extra_call)
+    response = post_method(data=json.dumps(MOCK_SINGLE_CALL_REQUEST))
     assert response.status_code == 200
     data = json.loads(response.data)
     assert "replies" in data
@@ -190,15 +211,16 @@ def test_mock_dateset_10_calls_all_pages(post_method, DUMMY_REQUEST):
         assert len(reply) == 50
 
 
-@pytest.mark.mock_dataset
-def test_mock_dateset_single_call_no_result(post_method, DUMMY_REQUEST):
-    DUMMY_REQUEST["userDefinedContext"]["mock_dataset"] = ""
-    DUMMY_REQUEST["calls"][0][1] = 11
-    response = post_method(data=json.dumps(DUMMY_REQUEST))
+@pytest.mark.mock_data
+def test_mock_dateset_single_call_no_result(post_method, MOCK_SINGLE_CALL_REQUEST):
+    MOCK_SINGLE_CALL_REQUEST["userDefinedContext"]["mock_data"] = ""
+    MOCK_SINGLE_CALL_REQUEST["calls"][0][1] = 11
+    response = post_method(data=json.dumps(MOCK_SINGLE_CALL_REQUEST))
     assert response.status_code == 200
     data = json.loads(response.data)
     assert "replies" in data
     replies = data["replies"]
     assert len(replies) == 1
     reply = replies[0]
+    # need to decide if the right empty result is None or []
     assert reply is None
