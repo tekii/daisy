@@ -162,6 +162,14 @@ def test_request_calls_is_missing(post_method, MOCK_SINGLE_CALL_REQUEST):
     assert response.data == b'{"errorMessage":"Missing [calls]."}\n'
 
 
+@pytest.mark.bad_request
+def test_invalid_isoformat(post_method, MOCK_SINGLE_CALL_REQUEST):
+    MOCK_SINGLE_CALL_REQUEST["calls"][0][8] = "2024-12-31T23:59Z03:00"
+    response = post_method(data=json.dumps(MOCK_SINGLE_CALL_REQUEST))
+    assert response.status_code == 400
+    # assert response.data == b'{"errorMessage":"Unauthorized or Undefined credentials for agent: 0000000000001"}\n'
+
+
 @pytest.mark.agent_credentials
 def test_unauthorized_agent(post_method, MOCK_SINGLE_CALL_REQUEST):
     MOCK_SINGLE_CALL_REQUEST["calls"][0][0] = "0000000000001"
