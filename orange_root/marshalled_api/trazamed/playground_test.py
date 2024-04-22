@@ -5,6 +5,7 @@ import pathlib
 from datetime import datetime
 from zeep import Client, Settings
 from zeep.wsse.username import UsernameToken
+from zeep import helpers
 
 # from zeep.plugins import Plugin, HistoryPlugin
 import pytest
@@ -17,10 +18,12 @@ def service():
     settings = Settings(strict=False, xml_huge_tree=False, force_https=True, raw_response=False)
     wsse = UsernameToken("testwservice", "testwservicepsw")
     client = Client(wsdl=wsdl_uri, settings=settings, wsse=wsse, plugins=[])
+
     _service = client.create_service(
         binding_name="{http://business.mywebservice.inssjp.com/}IWebServiceSoapBinding",
         address="https://servicios.pami.org.ar/trazamed.WebService",
     )
+
     return _service
 
 
@@ -172,5 +175,10 @@ def test_06(target_service):
     assert str(type(response)) == "<class 'zeep.objects.transaccionesWSResult'>"
     assert response.hay_error is None
     assert len(response.list) > 0
-    _t = response.list[0]
-    assert str(type(_t)) == "<class 'zeep.objects.transaccionPlainWS'>"
+    # as_a_list = helpers.serialize_object(response.list, list)
+    as_a_dict = helpers.serialize_object(response.list, dict)
+
+    for _t in response.list:
+        assert str(type(_t)) == "<class 'zeep.objects.transaccionPlainWS'>"
+        input_dict = helpers.serialize_object(_t, dict)
+        pass

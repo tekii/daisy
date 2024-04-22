@@ -1,48 +1,26 @@
 """ Trazmed """
 
-# mypy: disable-error-code="valid-type"
-
+from typing import Any, Dict, List
 from datetime import date, datetime
-from typing import List
 import pathlib
-
 from zeep import Client, Settings
 from zeep.wsse.username import UsernameToken
 from zeep.plugins import Plugin, HistoryPlugin
 from zeep.transports import Transport
+from zeep import helpers
 
-__version__ = "0.0.1"
+__version__ = "0.0.0"
 __all__ = [
-    "API",
+    "Api",
 ]
 
-# mypy: disable-error-code="valid-type"
-type GLN = str
-type GTIN = str
+type GLN = str  # valid-type: ignore
+type GTIN = str  # mypy: disable-error-code="valid-type"
 type FC = str
 
 
-class TrazamedService:
-
-    def __init__(self):
-
-        wsdl_uri = pathlib.Path(__file__).resolve().parent.joinpath("trazamed", "trazamed.wsdl").as_uri()
-        settings = Settings(strict=False, xml_huge_tree=False, force_https=True, raw_response=False)
-        wsse = UsernameToken("testwservice", "testwservicepsw")
-        client = Client(wsdl=wsdl_uri, settings=settings, wsse=wsse, plugins=[])
-        self._service = client.create_service(
-            binding_name="{http://business.mywebservice.inssjp.com/}IWebServiceSoapBinding",
-            address="https://servicios.pami.org.ar/trazamed.WebService",
-        )
-
-    class TransaccionesResult:
-        def __init__(self):
-            pass
-
-
 class TransaccionesNoConfirmadasResponse:
-    def __init__(self) -> None:
-        pass
+    pass
 
 
 class TransaccionesResponse:
@@ -80,7 +58,7 @@ class TransaccionesResponse:
     _loop = 0
     while True:
         _new_one = _MOCK.copy()
-        _new_one["_id_transaccion"] += _loop
+        _new_one["_id_transaccion"] += _loop  # type: ignore
         _mock_data.append(_new_one)
         _loop += 1
         if 460 == _loop:
@@ -90,17 +68,30 @@ class TransaccionesResponse:
         pass
 
     @staticmethod
-    def return_mock_data(page_num, page_len):
+    def return_mock_data(page_num, page_len) -> List[Dict[str, Any]] | None:
         offset = (page_num - 1) * page_len
         page_data = TransaccionesResponse._mock_data[offset : offset + page_len]
         return None if len(page_data) == 0 else page_data
 
 
-class API:
+class Api:
     """Python friendly wrapper arround the not so beautiful Trazamed SOAP API"""
 
-    def __init__(self) -> None:
-        pass
+    def __init__(self, address="https://servicios.pami.org.ar/trazamed.WebService"):
+
+        # uses the local wsdl file placed in the same folder of this file
+        wsdl = pathlib.Path(__file__).resolve().parent.joinpath("trazamed.wsdl").as_uri()
+        #
+        settings = Settings(strict=False, xml_huge_tree=False, force_https=True, raw_response=False)
+        # yes its sad...
+        wsse = UsernameToken("testwservice", "testwservicepsw")
+        # not sure if i need to retain the client or the service holds the reference
+        self._client = Client(wsdl=wsdl, settings=settings, wsse=wsse)
+        # instanciate the service pointing to the actual prod/test environment
+        self._service = self._client.create_service(
+            binding_name="{http://business.mywebservice.inssjp.com/}IWebServiceSoapBinding",
+            address=address,
+        )
 
     def get_transacciones_no_confirmadas(
         self,
@@ -127,15 +118,14 @@ class API:
         pagina: int | None = None,  # arg19
         paginaMaxLen: int | None = None,  # arg20
         mock_data: bool = False,
-    ) -> TransaccionesNoConfirmadasResponse | None:
+    ) -> List[Dict[str, Any]] | None:
         return None
 
     def get_transacciones(
         self,
+        #
         usuario_agente_informador: str,  # arg0
         password_agente_informador: str,  # arg1
-        # agente_informador: GLN,
-        #
         transaccion_global: int | None = None,  # arg2
         agente_origen: GLN | None = None,  # arg3
         agente_destino: GLN | None = None,  # arg4
@@ -152,6 +142,34 @@ class API:
         estado: int | None = None,  # arg15
         pagina: int | None = None,  # arg16
         pagina_max_len: int | None = None,  # arg17
+        #
         mock_data: bool = False,
-    ) -> TransaccionesResponse | None:
-        return TransaccionesResponse.return_mock_data(pagina, pagina_max_len)
+        #
+    ) -> List[Dict[str, Any]] | None:
+        """return transacciones"""
+
+        if mock_data:
+            return TransaccionesResponse.return_mock_data(pagina, pagina_max_len)
+        else:
+            response = self._service.getTransaccionesWS(
+                arg0=usuario_agente_informador,
+                arg1=password_agente_informador,
+                arg2=transaccion_global,
+                arg3=agente_origen,
+                arg4=agente_destino,
+                arg5=medicamento,
+                arg6=evento,
+                arg7=None if operacion_desde is None else operacion_desde.strftime("%d/%m/&%Y"),
+                arg8=None if operacion_hasta is None else operacion_hasta.strftime("%d/%m/%Y"),
+                arg9=None if transaccion_desde is None else transaccion_desde.strftime("%d/%m/%Y %H:%M"),
+                arg10=None if transaccion_hasta is None else transaccion_hasta.strftime("%d/%m/%Y %H:%M"),
+                arg11=None if vencimiento_desde is None else vencimiento_desde.strftime("%d/%m/&%Y"),
+                arg12=None if vencimiento_hasta is None else vencimiento_hasta.strftime("%d/%m/%Y"),
+                arg13=remito,
+                arg14=factura,
+                arg15=estado,
+                arg16=pagina,
+                # arg17=pagina_max_len,
+            )
+
+            return helpers.serialize_object(response.list, dict)

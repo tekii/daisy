@@ -3,7 +3,7 @@
 from abc import ABCMeta, abstractmethod
 from typing import Any, Callable, Dict
 from datetime import datetime
-from .trazamed import API
+from .trazamed import Api
 
 __all__ = ["Marshal", "MarshalError", "get_marshal"]
 
@@ -15,7 +15,7 @@ class MarshalError(ValueError):
 class Marshal(metaclass=ABCMeta):
     """Manages the marshl/unmarshal to/from bq signature"""
 
-    def __init__(self, the_api: API, method: Callable) -> None:
+    def __init__(self, the_api: Api, method: Callable) -> None:
         self._the_api = the_api
         self._method = method
 
@@ -53,7 +53,7 @@ class Marshal(metaclass=ABCMeta):
 
 class _GetTransacciones(Marshal):
 
-    def __init__(self, the_api: API, method: Callable):
+    def __init__(self, the_api: Api, method: Callable):
         super().__init__(the_api, method)
 
     def load(self, *args):
@@ -83,7 +83,7 @@ class _GetTransacciones(Marshal):
 
 class _GetTransaccionesNoConfirmadas(Marshal):
 
-    def __init__(self, the_api: API, method: Callable):
+    def __init__(self, the_api: Api, method: Callable):
         super().__init__(the_api, method)
 
     def load(self, *args) -> dict:
@@ -94,11 +94,11 @@ class _GetTransaccionesNoConfirmadas(Marshal):
 
 
 # module scope api
-_api = API()
+_api = Api()
 
 _MARSHALS: Dict[str, Marshal] = {
-    "GET_TRANSACCIONES": _GetTransacciones(_api, API.get_transacciones),
-    "GET_TRANSACCIONES_NO_CONFIRMADAS": _GetTransaccionesNoConfirmadas(_api, API.get_transacciones_no_confirmadas),
+    "GET_TRANSACCIONES": _GetTransacciones(_api, Api.get_transacciones),
+    "GET_TRANSACCIONES_NO_CONFIRMADAS": _GetTransaccionesNoConfirmadas(_api, Api.get_transacciones_no_confirmadas),
 }
 
 
