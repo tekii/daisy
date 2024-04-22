@@ -3,23 +3,23 @@ import functions_framework
 from flask import jsonify, abort
 
 from marshalled_api import *
-import mock
 
 
 def recover_agent_credentials():
     # pylint: disable=C0415
     import json
+    from google.auth import default as default_credentials
     from google.cloud import secretmanager
 
-    # Create the Secret Manager client.
+    # recover the project id of the active project
+    _, project_id = default_credentials()
+    #
     client = secretmanager.SecretManagerServiceClient()
-    # Build the resource name of the secret version.
-    project_id = "daisy-dev01"
-    name = f"projects/{project_id}/secrets/AGENT_CREDENTIALS/versions/latest"
+    # project_id = "daisy-dev01"
+    name = f"projects/{project_id}/secrets/AGENT_CREDENTIALS/versions/2"
     response = client.access_secret_version(name=name)
-    # Return the decoded payload.
+    # return the decoded payload.
     secret = response.payload.data.decode("UTF-8")
-    # secret = json.dumps({"glnws": {"user": "pruebasws", "pass": "Clave1234"}})
     # TODO: some structural check here to avoid an error or the need of checking in the call itself
     return json.loads(secret)
 
@@ -35,14 +35,26 @@ def handle_zero_division(e):
 
 @functions_framework.errorhandler(400)
 def handle_400(e):
+    # 400 Bad Request
+    # BigQuery will not retry this request
     logging.error(msg=e.description)
     return jsonify({"errorMessage": e.description}), 400
 
 
 @functions_framework.errorhandler(401)
 def handle_401(e):
+    # 401 Unauthorized
+    # BigQuery will not retry this request
     # logging.critical(msg=msg)
     return jsonify({"errorMessage": e.description}), 401
+
+
+# BigQuery WILL retry this ones
+# 408 Request Timeout
+# 429 Too Many Requests (RFC 6585)
+# 500 Internal Server Error
+# 503 Service Unavailable
+# 504 Gateway Timeout
 
 
 @functions_framework.http
@@ -52,9 +64,8 @@ def the_function(request):
         global _AGENT_CREDENTIALS
         if _AGENT_CREDENTIALS is None:
             _AGENT_CREDENTIALS = recover_agent_credentials()
-
+        #
         request_json = request.get_json()
-
         # setup from udc
         udc_mock_data = False
         udc_modes = None  # full | stripped
@@ -94,7 +105,7 @@ def the_function(request):
             try:
                 r = operation(*call_args, agent_credentials=agent_credentials, mock_data=udc_mock_data)
             except MarshalError as e:
-                abort(400, f"Some Error marshalling/un the args or the response: {e.description}.")
+                abort(400, f"Some Error marshalling/un the args or the response: {e}.")
             # encode response
             # https://cloud.google.com/bigquery/docs/remote-functions#json_encoding_of_sql_data_type
             replies.append(r)
