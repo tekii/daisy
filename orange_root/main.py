@@ -129,10 +129,10 @@ def the_function(request):
 #
 # if __name__ == "__main__":
 #    pass
-if __name__ == "__test__":
-    pass
-else:
-    import google.cloud.logging
+#if __name__ == "__test__":
+#    pass
+#else:
+#    import google.cloud.logging
 
-    _client = google.cloud.logging.Client()
-    _client.setup_logging(log_level=logging.DEBUG)
+#    _client = google.cloud.logging.Client()
+#    _client.setup_logging(log_level=logging.DEBUG)
