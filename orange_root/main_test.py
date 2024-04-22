@@ -185,7 +185,6 @@ def test_mock_dateset_some(post_method, MOCK_SINGLE_CALL_REQUEST):
     assert response.status_code == 200
 
 
-@pytest.mark.skip
 @pytest.mark.mock_data
 def test_mock_dateset_single_call_single_page(post_method, MOCK_SINGLE_CALL_REQUEST):
     # MOCK_SINGLE_CALL_REQUEST["userDefinedContext"]["mock_data"] = ""
@@ -222,7 +221,7 @@ def test_mock_dateset_10_calls_all_pages(post_method, MOCK_SINGLE_CALL, MOCK_SIN
 @pytest.mark.mock_data
 def test_mock_dateset_single_call_no_result(post_method, MOCK_SINGLE_CALL_REQUEST):
     MOCK_SINGLE_CALL_REQUEST["userDefinedContext"]["mock_data"] = ""
-    MOCK_SINGLE_CALL_REQUEST["calls"][0][1] = 11
+    MOCK_SINGLE_CALL_REQUEST["calls"][0][15] = 11
     response = post_method(data=json.dumps(MOCK_SINGLE_CALL_REQUEST))
     assert response.status_code == 200
     data = json.loads(response.data)

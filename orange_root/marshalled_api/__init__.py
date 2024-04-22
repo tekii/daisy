@@ -41,14 +41,14 @@ class Marshal(metaclass=ABCMeta):
         except ValueError as e:
             raise MarshalError from e
 
-        _ = self._method(
+        results = self._method(
             self._the_api,
             usuario_agente_informador=agent_credentials["user"],
             password_agente_informador=agent_credentials["password"],
             mock_data=mock_data,
             **operation_specific_args,
         )
-        return self.dump()
+        return self.dump(results)
 
 
 class _GetTransacciones(Marshal):
@@ -77,8 +77,8 @@ class _GetTransacciones(Marshal):
             "pagina_max_len": None if args[15] is None else int(args[15]),
         }
 
-    def dump(self):
-        return []
+    def dump(self, r):
+        return r
 
 
 class _GetTransaccionesNoConfirmadas(Marshal):
