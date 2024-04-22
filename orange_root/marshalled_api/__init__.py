@@ -74,7 +74,7 @@ class _GetTransacciones(Marshal):
             "factura": args[13],
             "estado": None if args[14] is None else int(args[14]),
             "pagina": None if args[15] is None else int(args[15]),
-            "pagina_max_len": None if args[15] is None else int(args[15]),
+            "pagina_max_len": None if args[16] is None else int(args[16]),
         }
 
     def dump(self, r):

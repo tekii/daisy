@@ -189,6 +189,7 @@ def test_mock_dateset_some(post_method, MOCK_SINGLE_CALL_REQUEST):
 def test_mock_dateset_single_call_single_page(post_method, MOCK_SINGLE_CALL_REQUEST):
     # MOCK_SINGLE_CALL_REQUEST["userDefinedContext"]["mock_data"] = ""
     MOCK_SINGLE_CALL_REQUEST["calls"][0][15] = 1
+    MOCK_SINGLE_CALL_REQUEST["calls"][0][16] = 50
     response = post_method(data=json.dumps(MOCK_SINGLE_CALL_REQUEST))
     assert response.status_code == 200
     data = json.loads(response.data)
@@ -202,9 +203,11 @@ def test_mock_dateset_single_call_single_page(post_method, MOCK_SINGLE_CALL_REQU
 @pytest.mark.mock_data
 def test_mock_dateset_10_calls_all_pages(post_method, MOCK_SINGLE_CALL, MOCK_SINGLE_CALL_REQUEST):
     # MOCK_SINGLE_CALL_REQUEST["userDefinedContext"]["mock_data"] = ""
+    MOCK_SINGLE_CALL_REQUEST["calls"][0][16] = 50
     for page in range(2, 11):
         extra_call = MOCK_SINGLE_CALL.copy()
         extra_call[15] = page
+        extra_call[16] = 50
         MOCK_SINGLE_CALL_REQUEST["calls"].append(extra_call)
     response = post_method(data=json.dumps(MOCK_SINGLE_CALL_REQUEST))
     assert response.status_code == 200

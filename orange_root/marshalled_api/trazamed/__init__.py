@@ -90,11 +90,9 @@ class TransaccionesResponse:
         pass
 
     @staticmethod
-    def return_mock_data(page_num):
-        # page_num = arg
-        PAGE_LENGHT = 50
-        start = (page_num - 1) * PAGE_LENGHT
-        page_data = TransaccionesResponse._mock_data[start : start + PAGE_LENGHT]
+    def return_mock_data(page_num, page_len):
+        offset = (page_num - 1) * page_len
+        page_data = TransaccionesResponse._mock_data[offset : offset + page_len]
         return None if len(page_data) == 0 else page_data
 
 
@@ -156,4 +154,4 @@ class API:
         pagina_max_len: int | None = None,  # arg17
         mock_data: bool = False,
     ) -> TransaccionesResponse | None:
-        return TransaccionesResponse.return_mock_data(pagina)
+        return TransaccionesResponse.return_mock_data(pagina, pagina_max_len)
