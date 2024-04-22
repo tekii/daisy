@@ -75,30 +75,30 @@ def mock_single_call_request(MOCK_SINGLE_CALL):
     }
 
 
-@pytest.fixture(name="TNC_UDC")
-def get_tnc_udc():
-    return {"operation": "getTransaccionesWS", "mode": "mock"}
-
-
-@pytest.fixture(name="TNC_CALLS_00")
-def get_tnc_calls_00(TEST_AGENT):
-    return [
-        [TEST_AGENT, 1, None, "2024-02-02"],
-        [TEST_AGENT, 2, 2, "2024-02-02"],
-        [TEST_AGENT, 3, 2, "2024-02-02"],
-    ]
-
-
-@pytest.fixture(name="TNC_DATA")
-def get_tnc_data(TNC_UDC, MOCK_SINGLE_CALL):
-    return {
-        "requestId": "124ab1c",
-        "caller": "//dummy.example.com/projects/dummy/jobs/dummy:US.dummy_id",
-        "sessionUser": "test-user@test-company.com",
-        "userDefinedContext": TNC_UDC,
-        "calls": [MOCK_SINGLE_CALL],
-    }
-
+# @pytest.fixture(name="TNC_UDC")
+# def get_tnc_udc():
+#    return {"operation": "getTransaccionesWS", "mode": "mock"}
+#
+#
+# @pytest.fixture(name="TNC_CALLS_00")
+# def get_tnc_calls_00(TEST_AGENT):
+#    return [
+#        [TEST_AGENT, 1, None, "2024-02-02"],
+#        [TEST_AGENT, 2, 2, "2024-02-02"],
+#        [TEST_AGENT, 3, 2, "2024-02-02"],
+#    ]
+#
+#
+# @pytest.fixture(name="TNC_DATA")
+# def get_tnc_data(TNC_UDC, MOCK_SINGLE_CALL):
+#    return {
+#        "requestId": "124ab1c",
+#        "caller": "//dummy.example.com/projects/dummy/jobs/dummy:US.dummy_id",
+#        "sessionUser": "test-user@test-company.com",
+#        "userDefinedContext": TNC_UDC,
+#        "calls": [MOCK_SINGLE_CALL],
+#    }
+#
 
 #
 #
@@ -163,7 +163,7 @@ def test_request_calls_is_missing(post_method, MOCK_SINGLE_CALL_REQUEST):
 
 
 @pytest.mark.bad_request
-def test_invalid_isoformat(post_method, MOCK_SINGLE_CALL_REQUEST):
+def test_invalid_timestamp_isoformat(post_method, MOCK_SINGLE_CALL_REQUEST):
     MOCK_SINGLE_CALL_REQUEST["calls"][0][8] = "2024-12-31T23:59Z03:00"
     response = post_method(data=json.dumps(MOCK_SINGLE_CALL_REQUEST))
     assert response.status_code == 400
