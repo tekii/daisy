@@ -35,26 +35,18 @@ class Marshal(metaclass=ABCMeta):
         return []
 
     def __call__(self, *args: Any, agent_credentials: dict, mock_data: bool) -> Any:
-        # this function uses only the loaded, pre conditioned dict
+        # this function uses only the loaded, pre conditioned dict args
         # https://www.digitalocean.com/community/tutorials/how-to-use-args-and-kwargs-in-python-3
-
         try:
-            operation_specific_args = self.load(*args)
-        except ValueError as e:
-            raise MarshalError from e
-            results = None
-        try:
-            results = self._method(
-                self._the_api,
-                usuario_agente_informador=agent_credentials["user"],
-                password_agente_informador=agent_credentials["password"],
-                mock_data=mock_data,
-                **operation_specific_args,
+            return self.dump(
+                self._method(
+                    self._the_api,
+                    usuario_agente_informador=agent_credentials["user"],
+                    password_agente_informador=agent_credentials["password"],
+                    mock_data=mock_data,
+                    **self.load(*args)
+                )
             )
-        except:
-            pass
-        try:
-            return self.dump(results)
         except ValueError as e:
             raise MarshalError from e
 
