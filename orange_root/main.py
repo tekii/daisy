@@ -1,14 +1,13 @@
 import logging
-import functions_framework
 from flask import jsonify, abort
+import functions_framework
 
 from marshalled_api import *
 
 
 def recover_agent_credentials():
-    # pylint: disable=C0415
     import json
-    from google.auth import default as default_credentials
+    from google.auth import default as default_credentials  # mypy: --disable-error-code=import-untyped
     from google.cloud import secretmanager
 
     # recover the project id of the active project
@@ -129,9 +128,9 @@ def the_function(request):
 #
 # if __name__ == "__main__":
 #    pass
-#if __name__ == "__test__":
+# if __name__ == "__test__":
 #    pass
-#else:
+# else:
 #    import google.cloud.logging
 
 #    _client = google.cloud.logging.Client()
