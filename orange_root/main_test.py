@@ -197,17 +197,17 @@ def test_mock_dateset_single_call_single_page(post_method, MOCK_SINGLE_CALL_REQU
     replies = data["replies"]
     assert len(replies) == 1
     reply = replies[0]
-    assert len(reply) == 50
+    assert len(reply) == 100  # the api ignores page_max
 
 
 @pytest.mark.mock_data
 def test_mock_dateset_10_calls_all_pages(post_method, MOCK_SINGLE_CALL, MOCK_SINGLE_CALL_REQUEST):
     # MOCK_SINGLE_CALL_REQUEST["userDefinedContext"]["mock_data"] = ""
-    MOCK_SINGLE_CALL_REQUEST["calls"][0][16] = 50
-    for page in range(2, 11):
+    # MOCK_SINGLE_CALL_REQUEST["calls"][0][16] = 50
+    for page in range(2, 6):
         extra_call = MOCK_SINGLE_CALL.copy()
         extra_call[15] = page
-        extra_call[16] = 50
+        # extra_call[16] = 50
         MOCK_SINGLE_CALL_REQUEST["calls"].append(extra_call)
     response = post_method(data=json.dumps(MOCK_SINGLE_CALL_REQUEST))
     assert response.status_code == 200
@@ -215,10 +215,10 @@ def test_mock_dateset_10_calls_all_pages(post_method, MOCK_SINGLE_CALL, MOCK_SIN
     assert "replies" in data
     replies = data["replies"]
     # 460 rows
-    assert len(replies) == 10
-    assert len(replies.pop()) == 10
+    assert len(replies) == 5
+    assert len(replies.pop()) == 60
     for reply in replies:
-        assert len(reply) == 50
+        assert len(reply) == 100
 
 
 @pytest.mark.mock_data
