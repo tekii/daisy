@@ -145,7 +145,7 @@ class Api:
         #
         mock_data: bool = False,
         #
-    ) -> List[Dict[str, Any]] | None:
+    ):  # -> List[Dict[str, Any]] | None:
         """return transacciones"""
 
         if mock_data:
@@ -172,4 +172,5 @@ class Api:
                 # arg17=pagina_max_len,
             )
 
-            return helpers.serialize_object(response.list, dict)
+            # return helpers.serialize_object(response.list, dict)
+            return response.list

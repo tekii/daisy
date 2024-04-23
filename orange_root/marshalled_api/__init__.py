@@ -1,8 +1,9 @@
 """ Marshal / UnMarshal BQ User Define Function return values and args - https://docs.python.org/3/library/marshal.html#id2 """
 
 from abc import ABCMeta, abstractmethod
-from typing import Any, Callable, Dict
+from typing import Any, Callable, Dict, List
 from datetime import datetime
+from zeep import helpers
 from .trazamed import Api
 
 __all__ = ["Marshal", "MarshalError", "get_marshal"]
@@ -29,26 +30,33 @@ class Marshal(metaclass=ABCMeta):
         return {}
 
     @abstractmethod
-    def dump(self, *args):
+    def dump(self, results) -> List[Dict[str, Any]] | None:
         """Ensures JSON data respond to https://cloud.google.com/bigquery/docs/remote-functions#json_encoding_of_sql_data_type"""
         return []
 
     def __call__(self, *args: Any, agent_credentials: dict, mock_data: bool) -> Any:
         # this function uses only the loaded, pre conditioned dict
         # https://www.digitalocean.com/community/tutorials/how-to-use-args-and-kwargs-in-python-3
+
         try:
             operation_specific_args = self.load(*args)
         except ValueError as e:
             raise MarshalError from e
-
-        results = self._method(
-            self._the_api,
-            usuario_agente_informador=agent_credentials["user"],
-            password_agente_informador=agent_credentials["password"],
-            mock_data=mock_data,
-            **operation_specific_args,
-        )
-        return self.dump(results)
+            results = None
+        try:
+            results = self._method(
+                self._the_api,
+                usuario_agente_informador=agent_credentials["user"],
+                password_agente_informador=agent_credentials["password"],
+                mock_data=mock_data,
+                **operation_specific_args,
+            )
+        except:
+            pass
+        try:
+            return self.dump(results)
+        except ValueError as e:
+            raise MarshalError from e
 
 
 class _GetTransacciones(Marshal):
@@ -58,7 +66,7 @@ class _GetTransacciones(Marshal):
 
     def load(self, *args):
         return {
-            # "agente_informador": args[0],
+            # [indexes] here comes from the BigQuery params order
             "transaccion_global": None if args[1] is None else int(args[1]),
             "agente_origen": args[2],
             "agente_destino": args[3],
@@ -77,8 +85,27 @@ class _GetTransacciones(Marshal):
             "pagina_max_len": None if args[16] is None else int(args[16]),
         }
 
-    def dump(self, r):
-        return r
+    def dump(self, results) -> List[Dict[str, Any]] | None:
+        if results is None:
+            return None
+        else:
+            dumped = []
+            for r in results:
+                d = helpers.serialize_object(r, dict)
+                d["_f_evento"] = None if d["_f_evento"] is None else datetime.strptime(d["_f_evento"], "%d/%m/%Y").date()
+                d["_f_transaccion"] = None if d["_f_transaccion"] is None else datetime.strptime(d["_f_transaccion"], "%d/%m/%Y %H:%M")
+                d["_vencimiento"] = None if d["_vencimiento"] is None else datetime.strptime(d["_vencimiento"], "%d/%m/%Y").date()
+                d["_id_estado"] = None if d["_id_estado"] is None else int(d["_id_estado"])
+                d["_id_evento"] = None if d["_id_evento"] is None else int(d["_id_evento"])
+                del d["_ver2_paciente_apellido"]
+                del d["_ver2_paciente_documento"]
+                del d["_ver2_paciente_id_documento"]
+                del d["_ver2_paciente_id_obra_social"]
+                del d["_ver2_paciente_nombre"]
+                del d["_ver2_paciente_numero_afiliado"]
+                dumped.append(d)
+
+            return dumped
 
 
 class _GetTransaccionesNoConfirmadas(Marshal):
