@@ -127,16 +127,16 @@ class Api:
         usuario_agente_informador: str,  # arg0
         password_agente_informador: str,  # arg1
         transaccion_global: int | None = None,  # arg2
-        agente_origen: GLN | None = None,  # arg3
-        agente_destino: GLN | None = None,  # arg4
-        medicamento: GTIN | None = None,  # arg5
-        evento: int | None = None,  # arg6
-        operacion_desde: date | None = None,  # arg7
-        operacion_hasta: date | None = None,  # arg8
-        transaccion_desde: datetime | None = None,  # arg9
-        transaccion_hasta: datetime | None = None,  # arg10
-        vencimiento_desde: date | None = None,  # arg11
-        vencimiento_hasta: date | None = None,  # arg12
+        gln_agente_origen: GLN | None = None,  # arg3
+        gln_agente_destino: GLN | None = None,  # arg4
+        gtin_medicamento: GTIN | None = None,  # arg5
+        id_evento: int | None = None,  # arg6
+        f_operacion_desde: date | None = None,  # arg7
+        f_operacion_hasta: date | None = None,  # arg8
+        f_transaccion_desde: datetime | None = None,  # arg9
+        f_transaccion_hasta: datetime | None = None,  # arg10
+        f_vencimiento_desde: date | None = None,  # arg11
+        f_vencimiento_hasta: date | None = None,  # arg12
         remito: FC | None = None,  # arg13
         factura: FC | None = None,  # arg14
         estado: int | None = None,  # arg15
@@ -149,22 +149,22 @@ class Api:
         """return transacciones"""
 
         if mock_data:
-            return TransaccionesResponse.return_mock_data(pagina, pagina_max_len)
+            return TransaccionesResponse.return_mock_data(pagina, 100 if pagina_max_len is None else pagina_max_len)
         else:
             response = self._service.getTransaccionesWS(
                 arg0=usuario_agente_informador,
                 arg1=password_agente_informador,
                 arg2=transaccion_global,
-                arg3=agente_origen,
-                arg4=agente_destino,
-                arg5=medicamento,
-                arg6=evento,
-                arg7=None if operacion_desde is None else operacion_desde.strftime("%d/%m/&%Y"),
-                arg8=None if operacion_hasta is None else operacion_hasta.strftime("%d/%m/%Y"),
-                arg9=None if transaccion_desde is None else transaccion_desde.strftime("%d/%m/%Y %H:%M"),
-                arg10=None if transaccion_hasta is None else transaccion_hasta.strftime("%d/%m/%Y %H:%M"),
-                arg11=None if vencimiento_desde is None else vencimiento_desde.strftime("%d/%m/&%Y"),
-                arg12=None if vencimiento_hasta is None else vencimiento_hasta.strftime("%d/%m/%Y"),
+                arg3=gln_agente_origen,
+                arg4=gln_agente_destino,
+                arg5=gtin_medicamento,
+                arg6=id_evento,
+                arg7=None if f_operacion_desde is None else f_operacion_desde.strftime("%d/%m/&%Y"),
+                arg8=None if f_operacion_hasta is None else f_operacion_hasta.strftime("%d/%m/%Y"),
+                arg9=None if f_transaccion_desde is None else f_transaccion_desde.strftime("%d/%m/%Y %H:%M"),
+                arg10=None if f_transaccion_hasta is None else f_transaccion_hasta.strftime("%d/%m/%Y %H:%M"),
+                arg11=None if f_vencimiento_desde is None else f_vencimiento_desde.strftime("%d/%m/&%Y"),
+                arg12=None if f_vencimiento_hasta is None else f_vencimiento_hasta.strftime("%d/%m/%Y"),
                 arg13=remito,
                 arg14=factura,
                 arg15=estado,

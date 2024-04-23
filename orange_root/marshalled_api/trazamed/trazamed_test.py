@@ -36,8 +36,8 @@ def test_get_transacciones_103_results(the_entrenamiento_api):
     result = the_entrenamiento_api.get_transacciones(
         "pruebasws",
         "Clave1234",
-        transaccion_desde=datetime.fromisoformat("2023-02-01T02:46"),
-        transaccion_hasta=datetime.fromisoformat("2023-02-28"),
+        f_transaccion_desde=datetime.fromisoformat("2023-02-01T02:46"),
+        f_transaccion_hasta=datetime.fromisoformat("2023-02-28"),
         pagina=1,
         pagina_max_len=50,
     )
@@ -46,8 +46,8 @@ def test_get_transacciones_103_results(the_entrenamiento_api):
     result = the_entrenamiento_api.get_transacciones(
         "pruebasws",
         "Clave1234",
-        transaccion_desde=datetime.fromisoformat("2023-02-01T02:46"),
-        transaccion_hasta=datetime.fromisoformat("2023-02-28"),
+        f_transaccion_desde=datetime.fromisoformat("2023-02-01T02:46"),
+        f_transaccion_hasta=datetime.fromisoformat("2023-02-28"),
         pagina=2,
         pagina_max_len=50,
     )

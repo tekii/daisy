@@ -58,23 +58,22 @@ class _GetTransacciones(Marshal):
 
     def load(self, *args):
         return {
-            # [indexes] here comes from the BigQuery params order
+            # [indexes] here comes from the BigQuery params order and arg0 is the agent
             "transaccion_global": None if args[1] is None else int(args[1]),
-            "agente_origen": args[2],
-            "agente_destino": args[3],
-            "medicamento": args[4],
-            "evento": None if args[5] is None else int(args[5]),
-            "operacion_desde": None if args[6] is None else datetime.fromisoformat(args[6]).date(),
-            "operacion_hasta": None if args[7] is None else datetime.fromisoformat(args[7]).date(),
-            "transaccion_desde": None if args[8] is None else datetime.fromisoformat(args[8]),
-            "transaccion_hasta": None if args[9] is None else datetime.fromisoformat(args[9]),
-            "vencimiento_desde": None if args[10] is None else datetime.fromisoformat(args[10]).date(),
-            "vencimiento_hasta": None if args[11] is None else datetime.fromisoformat(args[11]).date(),
+            "gln_agente_origen": args[2],
+            "gln_agente_destino": args[3],
+            "gtin_medicamento": args[4],
+            "id_evento": None if args[5] is None else int(args[5]),
+            "f_operacion_desde": None if args[6] is None else datetime.fromisoformat(args[6]).date(),
+            "f_operacion_hasta": None if args[7] is None else datetime.fromisoformat(args[7]).date(),
+            "f_transaccion_desde": None if args[8] is None else datetime.fromisoformat(args[8]),
+            "f_transaccion_hasta": None if args[9] is None else datetime.fromisoformat(args[9]),
+            "f_vencimiento_desde": None if args[10] is None else datetime.fromisoformat(args[10]).date(),
+            "f_vencimiento_hasta": None if args[11] is None else datetime.fromisoformat(args[11]).date(),
             "remito": args[12],
             "factura": args[13],
             "estado": None if args[14] is None else int(args[14]),
             "pagina": None if args[15] is None else int(args[15]),
-            "pagina_max_len": None if args[16] is None else int(args[16]),
         }
 
     def dump(self, results) -> List[Dict[str, Any]] | None:
