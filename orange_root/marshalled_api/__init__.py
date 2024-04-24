@@ -87,9 +87,17 @@ class _GetTransacciones(Marshal):
                 dumped = []
                 for r in results:
                     d = helpers.serialize_object(r, dict)
-                    d["_f_evento"] = None if d["_f_evento"] is None else datetime.strptime(d["_f_evento"], "%d/%m/%Y").date()
-                    d["_f_transaccion"] = None if d["_f_transaccion"] is None else datetime.strptime(d["_f_transaccion"], "%d/%m/%Y %H:%M")
-                    d["_vencimiento"] = None if d["_vencimiento"] is None else datetime.strptime(d["_vencimiento"], "%d/%m/%Y").date()
+                    d["_f_evento"] = (
+                        None if d["_f_evento"] is None else datetime.strptime(d["_f_evento"], "%d/%m/%Y").date().strftime("%Y-%m-%d")
+                    )
+                    d["_f_transaccion"] = (
+                        None
+                        if d["_f_transaccion"] is None
+                        else datetime.strptime(d["_f_transaccion"], "%d/%m/%Y %H:%M").strftime("%Y-%m-%dT%H:%M")
+                    )
+                    d["_vencimiento"] = (
+                        None if d["_vencimiento"] is None else datetime.strptime(d["_vencimiento"], "%d/%m/%Y").date().strftime("%Y-%m-%d")
+                    )
                     d["_id_estado"] = None if d["_id_estado"] is None else int(d["_id_estado"])
                     d["_id_evento"] = None if d["_id_evento"] is None else int(d["_id_evento"])
                     del d["_ver2_paciente_apellido"]
