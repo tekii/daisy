@@ -85,8 +85,16 @@ class Api:
         settings = Settings(strict=False, xml_huge_tree=False, force_https=True, raw_response=False)
         # yes its sad...
         wsse = UsernameToken("testwservice", "testwservicepsw")
+        # this api is notoriously slow thats why... 600 also this is a candidate to be an ENV var.
+        # TODO check the allow times in Cloud functions and BigQuery
+        transport = Transport(operation_timeout=600)
         # not sure if i need to retain the client or the service holds the reference
-        self._client = Client(wsdl=wsdl, settings=settings, wsse=wsse)
+        self._client = Client(
+            wsdl=wsdl,
+            wsse=wsse,
+            transport=transport,
+            settings=settings,
+        )
         # instanciate the service pointing to the actual prod/test environment
         self._service = self._client.create_service(
             binding_name="{http://business.mywebservice.inssjp.com/}IWebServiceSoapBinding",
