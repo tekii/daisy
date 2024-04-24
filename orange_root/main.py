@@ -59,60 +59,53 @@ def handle_401(e):
 
 @functions_framework.http
 def the_function(request):
+    # pylint: disable=W0603
+    global _AGENT_CREDENTIALS
+    if _AGENT_CREDENTIALS is None:
+        _AGENT_CREDENTIALS = recover_agent_credentials()
+    #
+    request_json = request.get_json()
+    # setup from udc
+    udc_mock_data = False
+    udc_modes = None  # full | stripped
+    udc_log_diagnostics = None
+    udc_operation = None  # todo, change to default
     try:
-        # pylint: disable=W0603
-        global _AGENT_CREDENTIALS
-        if _AGENT_CREDENTIALS is None:
-            _AGENT_CREDENTIALS = recover_agent_credentials()
-        #
-        request_json = request.get_json()
-        # setup from udc
-        udc_mock_data = False
-        udc_modes = None  # full | stripped
-        udc_log_diagnostics = None
-        udc_operation = None  # todo, change to default
-        try:
-            udc = request_json["userDefinedContext"]
-            # which soap op to invoke
-            udc_soap_operation = udc["soap_operation"]
-            # udc_mode = udc["mode"] if "mode" in udc:
-            udc_mock_data = "mock_data" in udc
-            udc_log_diagnostics = "enable_diagnostic" in udc
-        except KeyError as e:
-            abort(400, f"Missing key {e} accesing userDefinedContext.")
+        udc = request_json["userDefinedContext"]
+        # which soap op to invoke
+        udc_soap_operation = udc["soap_operation"]
+        # udc_mode = udc["mode"] if "mode" in udc:
+        udc_mock_data = "mock_data" in udc
+        udc_log_diagnostics = "enable_diagnostic" in udc
+    except KeyError as e:
+        abort(400, f"Missing key {e} accesing userDefinedContext.")
 
-        # which operation
-        operation: Marshal | None = get_marshal(udc_soap_operation)
-        if operation is None:
-            abort(401, f"Unkown soap operation{udc_soap_operation}.")
+    # which operation
+    operation: Marshal | None = get_marshal(udc_soap_operation)
+    if operation is None:
+        abort(400, f"Unkown soap operation{udc_soap_operation}.")
 
-        # recover the calls arguments array
-        calls = request_json.get("calls")
-        if calls is None:
-            abort(400, "Missing [calls].")
+    # recover the calls arguments array
+    calls = request_json.get("calls")
+    if calls is None:
+        abort(400, "Missing [calls].")
 
-        # iterate over the calls
-        replies = []
-        for call_args in calls:
-            # first is the agent to use
-            agent = call_args[0]
-            # credentials 4 this call
-            agent_credentials = _AGENT_CREDENTIALS.get(agent)
-            # unfortunatly we los all replies if this fails. this is an non critical because only this agent is undef/unauth
-            if agent_credentials is None:
-                abort(401, f"Unauthorized or Undefined credentials for agent: {agent}")
+    # iterate over the calls
+    replies = []
+    for call_args in calls:
+        # first is the agent to use
+        agent = call_args[0]
+        # credentials 4 this call
+        agent_credentials = _AGENT_CREDENTIALS.get(agent)
+        # unfortunatly we los all replies if this fails. this is an non critical because only this agent is undef/unauth
+        if agent_credentials is None:
+            abort(401, f"Unauthorized or Undefined credentials for agent: {agent}")
 
-            replies.append(operation(*call_args, agent_credentials=agent_credentials, mock_data=udc_mock_data))
-        #
-        return jsonify({"replies": replies})
+        replies.append(operation(*call_args, agent_credentials=agent_credentials, mock_data=udc_mock_data))
 
-    except ZeroDivisionError as e:
-        # https://cloud.google.com/bigquery/docs/remote-functions#http_response_code
-        # https://cloud.google.com/bigquery/docs/remote-functions#output_format
-        # aqui hay que generar el repsonse con el errorMessage
-        # esto esta mal porque siempre da 400
-        logging.debug("Request Headers {}".format(request.headers))
-        return jsonify({"errorMessage": f"Some unhandled problem: {repr(e)}"}), 500
+    # https://cloud.google.com/bigquery/docs/remote-functions#http_response_code
+    # https://cloud.google.com/bigquery/docs/remote-functions#output_format
+    return jsonify({"replies": replies})
 
 
 # Your endpoint should return the HTTP response code 200 for a successful response.
