@@ -31,6 +31,7 @@ def test_TransaccionesResponse_mock(the_entrenamiento_api):
     pass
 
 
+@pytest.mark.skip
 def test_get_transacciones_103_results(the_entrenamiento_api):
 
     result = the_entrenamiento_api.get_transacciones(

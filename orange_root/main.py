@@ -30,7 +30,9 @@ _AGENT_CREDENTIALS = None
 
 @functions_framework.errorhandler(MarshalError)
 def handle_marshal_error(e):
-    return jsonify({"errorMessage": f"Some Error [un]marshalling the args or the response: {e.args}."}), e.code
+    msg = f"Some Error [un]marshalling the args or the response: {e.args}."
+    logging.error(msg=msg)
+    return jsonify({"errorMessage": msg}), e.code
 
 
 @functions_framework.errorhandler(400)
@@ -45,7 +47,7 @@ def handle_400(e):
 def handle_401(e):
     # 401 Unauthorized
     # BigQuery will not retry this request
-    # logging.critical(msg=msg)
+    logging.error(msg=e.description)
     return jsonify({"errorMessage": e.description}), 401
 
 
@@ -88,7 +90,7 @@ def the_function(request):
     # recover the calls arguments array
     calls = request_json.get("calls")
     if calls is None:
-        abort(400, "Missing [calls].")
+        abort(400, "Missing UDC calls key in the request.")
 
     # iterate over the calls
     replies = []
@@ -99,7 +101,7 @@ def the_function(request):
         agent_credentials = _AGENT_CREDENTIALS.get(agent)
         # unfortunatly we los all replies if this fails. this is an non critical because only this agent is undef/unauth
         if agent_credentials is None:
-            abort(401, f"Unauthorized or Undefined credentials for agent: {agent}")
+            abort(401, f"Unauthorized or undefined credentials for agent: {agent}")
 
         replies.append(operation(*call_args, agent_credentials=agent_credentials, mock_data=udc_mock_data))
 

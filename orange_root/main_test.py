@@ -1,6 +1,5 @@
 import json
-
-# from urllib import request
+import logging
 import pathlib
 import pytest
 
@@ -75,56 +74,6 @@ def mock_single_call_request(MOCK_SINGLE_CALL):
     }
 
 
-# @pytest.fixture(name="TNC_UDC")
-# def get_tnc_udc():
-#    return {"operation": "getTransaccionesWS", "mode": "mock"}
-#
-#
-# @pytest.fixture(name="TNC_CALLS_00")
-# def get_tnc_calls_00(TEST_AGENT):
-#    return [
-#        [TEST_AGENT, 1, None, "2024-02-02"],
-#        [TEST_AGENT, 2, 2, "2024-02-02"],
-#        [TEST_AGENT, 3, 2, "2024-02-02"],
-#    ]
-#
-#
-# @pytest.fixture(name="TNC_DATA")
-# def get_tnc_data(TNC_UDC, MOCK_SINGLE_CALL):
-#    return {
-#        "requestId": "124ab1c",
-#        "caller": "//dummy.example.com/projects/dummy/jobs/dummy:US.dummy_id",
-#        "sessionUser": "test-user@test-company.com",
-#        "userDefinedContext": TNC_UDC,
-#        "calls": [MOCK_SINGLE_CALL],
-#    }
-#
-
-#
-#
-#
-
-
-# def test_02(post_method, TNC_DATA):
-#    response = post_method(data=json.dumps(TNC_DATA))
-#    assert response.status_code == 200
-#    assert response.data == b'{"replies":[[null,1,2,"tree"],[null,1,2,"tree"],[null,1,2,"tree"]]}\n'
-#    assert json.dumps(json.loads(response.data), sort_keys=True) == json.dumps(
-#        json.loads(b'{"replies":[[null,1,2,"tree"],[null,1,2,"tree"],[null,1,2,"tree"]]}\n'),
-#        sort_keys=True,
-#    )
-
-
-# @pytest.mark.secret_credentials
-# def test_http_401_from_undefined_agent_credential(post_method, TNC_DATA, monkeypatch):
-#    # pylint: disable=C0415
-#    # import main
-#
-#    monkeypatch.setattr(main, "_AGENT_CREDENTIALS", None)
-#    response = post_method(data=json.dumps(TNC_DATA))
-#    assert response.status_code == 401
-
-
 # @pytest.mark.secret_credentials
 # def test_http_401_from_unauthorized_agent_credential(post_method, TNC_DATA, monkeypatch):
 #    # put some different credential
@@ -141,11 +90,6 @@ def mock_single_call_request(MOCK_SINGLE_CALL):
 #    assert response.status_code == 401
 
 
-## pylint: disable=W0613
-# def test_http_401_from_trazmed_webservice(post_method, TNC_DATA, monkeypatch):
-#    pass
-
-
 @pytest.mark.bad_request
 def test_request_user_defined_context_is_missing(post_method, MOCK_SINGLE_CALL_REQUEST):
     del MOCK_SINGLE_CALL_REQUEST["userDefinedContext"]
@@ -159,14 +103,17 @@ def test_request_calls_is_missing(post_method, MOCK_SINGLE_CALL_REQUEST):
     del MOCK_SINGLE_CALL_REQUEST["calls"]
     response = post_method(data=json.dumps(MOCK_SINGLE_CALL_REQUEST))
     assert response.status_code == 400
-    assert response.data == b'{"errorMessage":"Missing [calls]."}\n'
+    assert response.data == b'{"errorMessage":"Missing UDC calls key in the request."}\n'
 
 
 @pytest.mark.bad_request
-def test_invalid_timestamp_isoformat(post_method, MOCK_SINGLE_CALL_REQUEST):
+def test_invalid_timestamp_isoformat(post_method, MOCK_SINGLE_CALL_REQUEST, caplog):
+    caplog.set_level(logging.ERROR)
     MOCK_SINGLE_CALL_REQUEST["calls"][0][8] = "2024-12-31T23:59Z03:00"
     response = post_method(data=json.dumps(MOCK_SINGLE_CALL_REQUEST))
     assert response.status_code == 400
+    assert len(caplog.records) == 1
+    assert caplog.records.pop().levelname == "ERROR"
     # assert response.data == b'{"errorMessage":"Unauthorized or Undefined credentials for agent: 0000000000001"}\n'
 
 
@@ -175,7 +122,7 @@ def test_unauthorized_agent(post_method, MOCK_SINGLE_CALL_REQUEST):
     MOCK_SINGLE_CALL_REQUEST["calls"][0][0] = "0000000000001"
     response = post_method(data=json.dumps(MOCK_SINGLE_CALL_REQUEST))
     assert response.status_code == 401
-    assert response.data == b'{"errorMessage":"Unauthorized or Undefined credentials for agent: 0000000000001"}\n'
+    assert response.data == b'{"errorMessage":"Unauthorized or undefined credentials for agent: 0000000000001"}\n'
 
 
 @pytest.mark.mock_data
