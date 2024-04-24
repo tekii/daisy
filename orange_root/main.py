@@ -5,6 +5,9 @@ import functions_framework
 from marshalled_api import *
 
 
+# logging.basicConfig(level=logging.CRITICAL)
+
+
 def recover_agent_credentials():
     import json
     from google.auth import default as default_credentials  # mypy: --disable-error-code=import-untyped
