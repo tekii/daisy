@@ -79,6 +79,8 @@ class Api:
 
     def __init__(self, address="https://servicios.pami.org.ar/trazamed.WebService"):
 
+        # self.logger = logging.getLogger(__name__)
+
         # uses the local wsdl file placed in the same folder of this file
         wsdl = pathlib.Path(__file__).resolve().parent.joinpath("trazamed.wsdl").as_uri()
         #
@@ -86,7 +88,8 @@ class Api:
         # yes its sad...
         wsse = UsernameToken("testwservice", "testwservicepsw")
         # this api is notoriously slow thats why... 600 also this is a candidate to be an ENV var.
-        # TODO check the allow times in Cloud functions and BigQuery
+        # TODO check the allow max times in Cloud functions and BigQuery
+        # we will not attempt any handling other than pass the proper error and relay on the BQ retry criteria
         transport = Transport(operation_timeout=600)
         # not sure if i need to retain the client or the service holds the reference
         self._client = Client(

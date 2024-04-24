@@ -5,7 +5,7 @@ import functions_framework
 from marshalled_api import *
 
 
-# logging.basicConfig(level=logging.CRITICAL)
+# logging.getLogger().setLevel(logging.INFO)
 
 
 def recover_agent_credentials():
@@ -29,6 +29,8 @@ def recover_agent_credentials():
 
 # the problem initializing this here is that we dont want to run this before the monkeypatch
 _AGENT_CREDENTIALS = None
+
+# TODO, implement some catch all handler that return the expected JSON
 
 
 @functions_framework.errorhandler(MarshalError)
