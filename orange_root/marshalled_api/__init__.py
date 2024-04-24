@@ -10,7 +10,9 @@ __all__ = ["Marshal", "MarshalError", "get_marshal"]
 
 
 class MarshalError(ValueError):
-    pass
+    def __init__(self, *args: object, code: int) -> None:
+        super().__init__(*args)
+        self.code = code
 
 
 class Marshal(metaclass=ABCMeta):
@@ -27,6 +29,7 @@ class Marshal(metaclass=ABCMeta):
     def load(self, *args):
         """load the positional args of the UDF into the kw ones in the API, need to be override for each operation"""
         # https://cloud.google.com/bigquery/docs/reference/standard-sql/json_functions#json_encodings
+        # https://cloud.google.com/bigquery/docs/remote-functions#json_encoding_of_sql_data_type
         return {}
 
     @abstractmethod
@@ -37,18 +40,15 @@ class Marshal(metaclass=ABCMeta):
     def __call__(self, *args: Any, agent_credentials: dict, mock_data: bool) -> Any:
         # this function uses only the loaded, pre conditioned dict args
         # https://www.digitalocean.com/community/tutorials/how-to-use-args-and-kwargs-in-python-3
-        try:
-            return self.dump(
-                self._method(
-                    self._the_api,
-                    usuario_agente_informador=agent_credentials["user"],
-                    password_agente_informador=agent_credentials["password"],
-                    mock_data=mock_data,
-                    **self.load(*args)
-                )
+        return self.dump(
+            self._method(
+                self._the_api,
+                usuario_agente_informador=agent_credentials["user"],
+                password_agente_informador=agent_credentials["password"],
+                mock_data=mock_data,
+                **self.load(*args)
             )
-        except ValueError as e:
-            raise MarshalError from e
+        )
 
 
 class _GetTransacciones(Marshal):
@@ -57,46 +57,52 @@ class _GetTransacciones(Marshal):
         super().__init__(the_api, method)
 
     def load(self, *args):
-        return {
-            # [indexes] here comes from the BigQuery params order and arg0 is the agent
-            "transaccion_global": None if args[1] is None else int(args[1]),
-            "gln_agente_origen": args[2],
-            "gln_agente_destino": args[3],
-            "gtin_medicamento": args[4],
-            "id_evento": None if args[5] is None else int(args[5]),
-            "f_operacion_desde": None if args[6] is None else datetime.fromisoformat(args[6]).date(),
-            "f_operacion_hasta": None if args[7] is None else datetime.fromisoformat(args[7]).date(),
-            "f_transaccion_desde": None if args[8] is None else datetime.fromisoformat(args[8]),
-            "f_transaccion_hasta": None if args[9] is None else datetime.fromisoformat(args[9]),
-            "f_vencimiento_desde": None if args[10] is None else datetime.fromisoformat(args[10]).date(),
-            "f_vencimiento_hasta": None if args[11] is None else datetime.fromisoformat(args[11]).date(),
-            "remito": args[12],
-            "factura": args[13],
-            "estado": None if args[14] is None else int(args[14]),
-            "pagina": None if args[15] is None else int(args[15]),
-        }
+        try:
+            return {
+                # [indexes] here comes from the BigQuery params order and arg0 is the agent
+                "transaccion_global": None if args[1] is None else int(args[1]),
+                "gln_agente_origen": args[2],
+                "gln_agente_destino": args[3],
+                "gtin_medicamento": args[4],
+                "id_evento": None if args[5] is None else int(args[5]),
+                "f_operacion_desde": None if args[6] is None else datetime.fromisoformat(args[6]).date(),
+                "f_operacion_hasta": None if args[7] is None else datetime.fromisoformat(args[7]).date(),
+                "f_transaccion_desde": None if args[8] is None else datetime.fromisoformat(args[8]),
+                "f_transaccion_hasta": None if args[9] is None else datetime.fromisoformat(args[9]),
+                "f_vencimiento_desde": None if args[10] is None else datetime.fromisoformat(args[10]).date(),
+                "f_vencimiento_hasta": None if args[11] is None else datetime.fromisoformat(args[11]).date(),
+                "remito": args[12],
+                "factura": args[13],
+                "estado": None if args[14] is None else int(args[14]),
+                "pagina": None if args[15] is None else int(args[15]),
+            }
+        except ValueError as e:
+            raise MarshalError(*e.args, code=400) from None
 
     def dump(self, results) -> List[Dict[str, Any]] | None:
         if results is None:
             return None
         else:
-            dumped = []
-            for r in results:
-                d = helpers.serialize_object(r, dict)
-                d["_f_evento"] = None if d["_f_evento"] is None else datetime.strptime(d["_f_evento"], "%d/%m/%Y").date()
-                d["_f_transaccion"] = None if d["_f_transaccion"] is None else datetime.strptime(d["_f_transaccion"], "%d/%m/%Y %H:%M")
-                d["_vencimiento"] = None if d["_vencimiento"] is None else datetime.strptime(d["_vencimiento"], "%d/%m/%Y").date()
-                d["_id_estado"] = None if d["_id_estado"] is None else int(d["_id_estado"])
-                d["_id_evento"] = None if d["_id_evento"] is None else int(d["_id_evento"])
-                del d["_ver2_paciente_apellido"]
-                del d["_ver2_paciente_documento"]
-                del d["_ver2_paciente_id_documento"]
-                del d["_ver2_paciente_id_obra_social"]
-                del d["_ver2_paciente_nombre"]
-                del d["_ver2_paciente_numero_afiliado"]
-                dumped.append(d)
-
-            return dumped
+            try:
+                dumped = []
+                for r in results:
+                    d = helpers.serialize_object(r, dict)
+                    d["_f_evento"] = None if d["_f_evento"] is None else datetime.strptime(d["_f_evento"], "%d/%m/%Y").date()
+                    d["_f_transaccion"] = None if d["_f_transaccion"] is None else datetime.strptime(d["_f_transaccion"], "%d/%m/%Y %H:%M")
+                    d["_vencimiento"] = None if d["_vencimiento"] is None else datetime.strptime(d["_vencimiento"], "%d/%m/%Y").date()
+                    d["_id_estado"] = None if d["_id_estado"] is None else int(d["_id_estado"])
+                    d["_id_evento"] = None if d["_id_evento"] is None else int(d["_id_evento"])
+                    del d["_ver2_paciente_apellido"]
+                    del d["_ver2_paciente_documento"]
+                    del d["_ver2_paciente_id_documento"]
+                    del d["_ver2_paciente_id_obra_social"]
+                    del d["_ver2_paciente_nombre"]
+                    del d["_ver2_paciente_numero_afiliado"]
+                    dumped.append(d)
+                return dumped
+            except ValueError as e:
+                # this is an attemp to diferentiate of the ValueErrors in the request
+                raise MarshalError(*e.args, code=418) from None
 
 
 class _GetTransaccionesNoConfirmadas(Marshal):

@@ -17,6 +17,7 @@ def recover_agent_credentials():
     # project_id = "daisy-dev01"
     name = f"projects/{project_id}/secrets/AGENT_CREDENTIALS/versions/2"
     response = client.access_secret_version(name=name)
+    # if the proper secret its not defined is a FATAL/CRITICAL and the function should terminate immidiatly
     # return the decoded payload.
     secret = response.payload.data.decode("UTF-8")
     # TODO: some structural check here to avoid an error or the need of checking in the call itself
@@ -27,9 +28,9 @@ def recover_agent_credentials():
 _AGENT_CREDENTIALS = None
 
 
-@functions_framework.errorhandler(ZeroDivisionError)
-def handle_zero_division(e):
-    return jsonify({"errorMessage": "I'm a teapot"}), 418
+@functions_framework.errorhandler(MarshalError)
+def handle_marshal_error(e):
+    return jsonify({"errorMessage": f"Some Error [un]marshalling the args or the response: {e.args}."}), e.code
 
 
 @functions_framework.errorhandler(400)
@@ -97,20 +98,12 @@ def the_function(request):
             agent = call_args[0]
             # credentials 4 this call
             agent_credentials = _AGENT_CREDENTIALS.get(agent)
-            # unfortunatly we los all replies if this fails.
+            # unfortunatly we los all replies if this fails. this is an non critical because only this agent is undef/unauth
             if agent_credentials is None:
                 abort(401, f"Unauthorized or Undefined credentials for agent: {agent}")
 
-            try:
-                r = operation(*call_args, agent_credentials=agent_credentials, mock_data=udc_mock_data)
-            except MarshalError as e:
-                abort(400, f"Some Error marshalling/un the args or the response: {e}.")
-            # encode response
-            # https://cloud.google.com/bigquery/docs/remote-functions#json_encoding_of_sql_data_type
-            replies.append(r)
-            # return_value.append(sum([int(x) if isinstance(x, str) else x for x in call if x is not None]))
-
-        # replies = [str(x) if x > _MAX_LOSSLESS or x < -_MAX_LOSSLESS else x for x in return_value]
+            replies.append(operation(*call_args, agent_credentials=agent_credentials, mock_data=udc_mock_data))
+        #
         return jsonify({"replies": replies})
 
     except ZeroDivisionError as e:
@@ -131,7 +124,7 @@ def the_function(request):
 # if __name__ == "__test__":
 #    pass
 # else:
-#    import google.cloud.logging
-
-#    _client = google.cloud.logging.Client()
-#    _client.setup_logging(log_level=logging.DEBUG)
+# import google.cloud.logging
+#
+# _client = google.cloud.logging.Client()
+# _client.setup_logging(log_level=logging.INFO)
