@@ -63,8 +63,8 @@ def test_get_transacciones_from_prod(the_production_api, the_production_secrets)
     result = the_production_api.get_transacciones(
         user,
         password,
-        transaccion_desde=datetime.fromisoformat("2013-08-01"),
-        transaccion_hasta=datetime.fromisoformat("2013-09-30"),
+        f_transaccion_desde=datetime.fromisoformat("2013-08-01"),
+        f_transaccion_hasta=datetime.fromisoformat("2013-09-30"),
         pagina=2,
         pagina_max_len=50,
     )
