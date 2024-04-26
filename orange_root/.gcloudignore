@@ -10,3 +10,4 @@ README.md
 *secrets.json
 pytest.ini
 .gitignore
+*.sql
