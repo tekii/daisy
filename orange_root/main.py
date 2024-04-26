@@ -18,13 +18,17 @@ def recover_agent_credentials():
     #
     client = secretmanager.SecretManagerServiceClient()
     # project_id = "daisy-dev01"
-    name = f"projects/{project_id}/secrets/AGENT_CREDENTIALS/versions/2"
+    name = f"projects/{project_id}/secrets/AGENT_CREDENTIALS/versions/latest"
     response = client.access_secret_version(name=name)
     # if the proper secret its not defined is a FATAL/CRITICAL and the function should terminate immidiatly
     # return the decoded payload.
-    secret = response.payload.data.decode("UTF-8")
+    secret_data = response.payload.data.decode("UTF-8")
+    secret = json.loads(secret_data)
     # TODO: some structural check here to avoid an error or the need of checking in the call itself
-    return json.loads(secret)
+    if secret["version"] == "2":
+        return secret["credentials"]
+    else:
+        None
 
 
 # the problem initializing this here is that we dont want to run this before the monkeypatch
