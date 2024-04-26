@@ -1,5 +1,6 @@
 import logging
 from flask import jsonify, abort
+from requests import Timeout
 import functions_framework
 
 from marshalled_api import *
@@ -35,6 +36,13 @@ def recover_agent_credentials():
 _AGENT_CREDENTIALS = None
 
 # TODO, implement some catch all handler that return the expected JSON
+
+
+@functions_framework.errorhandler(Timeout)
+def handle_timeout_error(e):
+    msg = f"Some timeout error: {e.args}."
+    logging.error(msg=msg)
+    return jsonify({"errorMessage": msg}), 408
 
 
 @functions_framework.errorhandler(MarshalError)
