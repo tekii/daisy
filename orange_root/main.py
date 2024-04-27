@@ -28,7 +28,7 @@ def recover_agent_credentials():
     secret = json.loads(secret_data)
 
     # TODO: some structural check here to avoid an error or the need of checking in the call itself
-    if "version" in secret.keys() and secret["version"] == "3":
+    if "version" in secret.keys() and secret["version"] == "2":
         return secret["credentials"]
     else:
         from google.cloud import error_reporting  # mypy: --disable-error-code=attr-defined
@@ -118,7 +118,7 @@ def the_function(request):
         # first is the agent to use
         agent = call_args[0]
         # credentials 4 this call
-        agent_credentials = _AGENT_CREDENTIALS.get(agent)
+        agent_credentials = None if _AGENT_CREDENTIALS is None else _AGENT_CREDENTIALS.get(agent)
         # unfortunatly we los all replies if this fails. this is an non critical because only this agent is undef/unauth
         if agent_credentials is None:
             abort(401, f"Unauthorized or undefined credentials for agent: {agent}")
