@@ -21,21 +21,24 @@ def recover_agent_credentials():
     # project_id = "daisy-dev01"
     name = f"projects/{project_id}/secrets/AGENT_CREDENTIALS/versions/latest"
     response = client.access_secret_version(name=name)
+
     # if the proper secret its not defined is a FATAL/CRITICAL and the function should terminate immidiatly
     # return the decoded payload.
     secret_data = response.payload.data.decode("UTF-8")
     secret = json.loads(secret_data)
+
     # TODO: some structural check here to avoid an error or the need of checking in the call itself
-    if secret["version"] == "2":
+    if "version" in secret.keys() and secret["version"] == "3":
         return secret["credentials"]
     else:
-        None
+        from google.cloud import error_reporting  # mypy: --disable-error-code=attr-defined
+
+        error_reporting.Client().report("Undefined AGENT_CREDENTIALS.")
+        return None
 
 
 # the problem initializing this here is that we dont want to run this before the monkeypatch
 _AGENT_CREDENTIALS = None
-
-# TODO, implement some catch all handler that return the expected JSON
 
 
 @functions_framework.errorhandler(Timeout)

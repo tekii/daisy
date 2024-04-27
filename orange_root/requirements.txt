@@ -2,4 +2,5 @@ Flask
 functions-framework==3.*
 google-cloud-secret-manager
 google-cloud-logging
+google-cloud-error-reporting
 zeep
