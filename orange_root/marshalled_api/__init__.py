@@ -1,5 +1,7 @@
 """ Marshal / UnMarshal BQ User Define Function return values and args - https://docs.python.org/3/library/marshal.html#id2 """
 
+import os
+import urllib.parse
 from abc import ABCMeta, abstractmethod
 from typing import Any, Callable, Dict, List
 from datetime import datetime
@@ -126,7 +128,7 @@ class _GetTransaccionesNoConfirmadas(Marshal):
 
 
 # module scope api
-_api = Api()
+_api = Api(address=urllib.parse.unquote(os.environ.get("TARGET_URL", "https%3A%2F%2Fservicios.pami.org.ar%2Ftrazamed.WebService")))
 
 _MARSHALS: Dict[str, Marshal] = {
     "GET_TRANSACCIONES": _GetTransacciones(_api, Api.get_transacciones),
