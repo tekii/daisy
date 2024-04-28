@@ -131,8 +131,8 @@ class _GetTransaccionesNoConfirmadas(Marshal):
 
 _target_url = os.environ.get("TARGET_URL")
 if _target_url is None:
-    logging.error("TARGET_URL undefined.")
-    # sys.exit(1)
+    logging.fatal("TARGET_URL undefined.")
+    sys.exit(1)
 else:
     try:
         _target_url = urllib.parse.unquote(_target_url)
@@ -142,14 +142,14 @@ else:
 _connect_timeout = os.environ.get("CONNECT_TIMEOUT")
 _read_timeout = os.environ.get("READ_TIMEOUT")
 if not _connect_timeout or not _read_timeout:
-    logging.error("CONNECT_TIMEOUT or READ_TIMEOUT undefined.")
-    # sys.exit(1)
+    logging.fatal("CONNECT_TIMEOUT or READ_TIMEOUT undefined.")
+    sys.exit(1)
 
 try:
-    _timeout = 600  # (float(_connect_timeout), float(_read_timeout))
+    _timeout = (float(_connect_timeout), float(_read_timeout))
 except ValueError as e:
-    logging.error("CONNECT_TIMEOUT or READ_TIMEOUT NaN.")
-    # sys.exit(1)
+    logging.fatal("CONNECT_TIMEOUT or READ_TIMEOUT NaN.")
+    sys.exit(1)
 
 # module scope api
 _api = Api(address=_target_url, operation_timeout=_timeout)

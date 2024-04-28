@@ -2,6 +2,7 @@ import json
 import logging
 import pathlib
 import pytest
+import importlib
 
 
 @pytest.fixture(autouse=True)
@@ -38,7 +39,7 @@ def post_method(monkeypatch, TEST_AGENT):
         lambda: {TEST_AGENT: {"user": "pruebasws", "password": "Clave1234"}},
     )
 
-    return lambda **kw: _client.post("/", content_type="application/json", **kw)
+    yield lambda **kw: _client.post("/", content_type="application/json", **kw)
 
 
 @pytest.fixture(name="MOCK_SINGLE_CALL")
@@ -194,22 +195,25 @@ def test_mock_dateset_single_call_no_result(post_method, MOCK_SINGLE_CALL_REQUES
 @pytest.mark.environment_undefined
 def test_environment_undefined_connect_timeout(monkeypatch):
     monkeypatch.delenv("CONNECT_TIMEOUT")
+    mod = importlib.import_module("api.marshal")
     with pytest.raises(SystemExit) as e:
-        import main
+        importlib.reload(mod)
     assert e.type == SystemExit
 
 
 @pytest.mark.environment_undefined
 def test_environment_undefined_read_timeout(monkeypatch):
     monkeypatch.delenv("READ_TIMEOUT")
+    mod = importlib.import_module("api.marshal")
     with pytest.raises(SystemExit) as e:
-        import main
+        importlib.reload(mod)
     assert e.type == SystemExit
 
 
 @pytest.mark.environment_undefined
 def test_environment_undefined_target_url(monkeypatch):
     monkeypatch.delenv("TARGET_URL")
+    mod = importlib.import_module("api.marshal")
     with pytest.raises(SystemExit) as e:
-        import main
+        importlib.reload(mod)
     assert e.type == SystemExit
