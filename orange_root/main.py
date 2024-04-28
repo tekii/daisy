@@ -3,7 +3,7 @@ from flask import jsonify, abort
 from requests import Timeout
 import functions_framework
 
-from api.marshal import *
+from marshals.marshals import *
 
 
 # logging.getLogger().setLevel(logging.INFO)

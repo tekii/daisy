@@ -195,7 +195,7 @@ def test_mock_dateset_single_call_no_result(post_method, MOCK_SINGLE_CALL_REQUES
 @pytest.mark.environment_undefined
 def test_environment_undefined_connect_timeout(monkeypatch):
     monkeypatch.delenv("CONNECT_TIMEOUT")
-    mod = importlib.import_module("api.marshal")
+    mod = importlib.import_module("marshals.marshals")
     with pytest.raises(SystemExit) as e:
         importlib.reload(mod)
     assert e.type == SystemExit
@@ -204,7 +204,7 @@ def test_environment_undefined_connect_timeout(monkeypatch):
 @pytest.mark.environment_undefined
 def test_environment_undefined_read_timeout(monkeypatch):
     monkeypatch.delenv("READ_TIMEOUT")
-    mod = importlib.import_module("api.marshal")
+    mod = importlib.import_module("marshals.marshals")
     with pytest.raises(SystemExit) as e:
         importlib.reload(mod)
     assert e.type == SystemExit
@@ -213,7 +213,7 @@ def test_environment_undefined_read_timeout(monkeypatch):
 @pytest.mark.environment_undefined
 def test_environment_undefined_target_url(monkeypatch):
     monkeypatch.delenv("TARGET_URL")
-    mod = importlib.import_module("api.marshal")
+    mod = importlib.import_module("marshals.marshals")
     with pytest.raises(SystemExit) as e:
         importlib.reload(mod)
     assert e.type == SystemExit
