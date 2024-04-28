@@ -4,6 +4,13 @@ import pathlib
 import pytest
 
 
+@pytest.fixture(autouse=True)
+def mock_environment(monkeypatch):
+    monkeypatch.setenv("TARGET_URL", "https%3A%2F%2Fservicios.pami.org.ar%2Ftrazamed.WebService")
+    monkeypatch.setenv("CONNECT_TIMEOUT", "30")
+    monkeypatch.setenv("READ_TIMEOUT", "1800")
+
+
 @pytest.fixture(autouse=True, name="TEST_AGENT")
 def fake_agent():
     return "glnws"
@@ -182,3 +189,27 @@ def test_mock_dateset_single_call_no_result(post_method, MOCK_SINGLE_CALL_REQUES
     reply = replies[0]
     # need to decide if the right empty result is None or []
     assert reply is None
+
+
+@pytest.mark.environment_undefined
+def test_environment_undefined_connect_timeout(monkeypatch):
+    monkeypatch.delenv("CONNECT_TIMEOUT")
+    with pytest.raises(SystemExit) as e:
+        import main
+    assert e.type == SystemExit
+
+
+@pytest.mark.environment_undefined
+def test_environment_undefined_read_timeout(monkeypatch):
+    monkeypatch.delenv("READ_TIMEOUT")
+    with pytest.raises(SystemExit) as e:
+        import main
+    assert e.type == SystemExit
+
+
+@pytest.mark.environment_undefined
+def test_environment_undefined_target_url(monkeypatch):
+    monkeypatch.delenv("TARGET_URL")
+    with pytest.raises(SystemExit) as e:
+        import main
+    assert e.type == SystemExit

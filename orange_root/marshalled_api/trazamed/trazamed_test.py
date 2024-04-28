@@ -8,13 +8,13 @@ from . import Api, TransaccionesResponse
 
 @pytest.fixture(name="the_entrenamiento_api")
 def devel_api():
-    api = Api()
+    api = Api(address="https://servicios.pami.org.ar/trazamed.WebService", operation_timeout=600)
     return api
 
 
 @pytest.fixture(name="the_production_api")
 def prod_api():
-    api = Api(address="https://trazabilidad.pami.org.ar:9050/trazamed.WebService")
+    api = Api(address="https://trazabilidad.pami.org.ar:9050/trazamed.WebService", operation_timeout=600)
     return api
 
 

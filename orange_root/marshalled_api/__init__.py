@@ -1,7 +1,9 @@
 """ Marshal / UnMarshal BQ User Define Function return values and args - https://docs.python.org/3/library/marshal.html#id2 """
 
 import os
+import sys
 import urllib.parse
+import logging
 from abc import ABCMeta, abstractmethod
 from typing import Any, Callable, Dict, List
 from datetime import datetime
@@ -127,8 +129,30 @@ class _GetTransaccionesNoConfirmadas(Marshal):
         return []
 
 
+_target_url = os.environ.get("TARGET_URL")
+if _target_url is None:
+    logging.error("TARGET_URL undefined.")
+    # sys.exit(1)
+else:
+    try:
+        _target_url = urllib.parse.unquote(_target_url)
+    except TypeError as e:
+        pass
+
+_connect_timeout = os.environ.get("CONNECT_TIMEOUT")
+_read_timeout = os.environ.get("READ_TIMEOUT")
+if not _connect_timeout or not _read_timeout:
+    logging.error("CONNECT_TIMEOUT or READ_TIMEOUT undefined.")
+    # sys.exit(1)
+
+try:
+    _timeout = 600  # (float(_connect_timeout), float(_read_timeout))
+except ValueError as e:
+    logging.error("CONNECT_TIMEOUT or READ_TIMEOUT NaN.")
+    # sys.exit(1)
+
 # module scope api
-_api = Api(address=urllib.parse.unquote(os.environ.get("TARGET_URL", "https%3A%2F%2Fservicios.pami.org.ar%2Ftrazamed.WebService")))
+_api = Api(address=_target_url, operation_timeout=_timeout)
 
 _MARSHALS: Dict[str, Marshal] = {
     "GET_TRANSACCIONES": _GetTransacciones(_api, Api.get_transacciones),

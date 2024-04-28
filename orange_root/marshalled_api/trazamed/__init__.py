@@ -77,10 +77,7 @@ class TransaccionesResponse:
 class Api:
     """Python friendly wrapper arround the not so beautiful Trazamed SOAP API"""
 
-    def __init__(self, address="https://servicios.pami.org.ar/trazamed.WebService"):
-
-        # self.logger = logging.getLogger(__name__)
-
+    def __init__(self, address, operation_timeout):
         # uses the local wsdl file placed in the same folder of this file
         wsdl = pathlib.Path(__file__).resolve().parent.joinpath("trazamed.wsdl").as_uri()
         #
@@ -90,7 +87,7 @@ class Api:
         # this api is notoriously slow thats why... 600 also this is a candidate to be an ENV var.
         # TODO check the allow max times in Cloud functions and BigQuery
         # we will not attempt any handling other than pass the proper error and relay on the BQ retry criteria
-        transport = Transport(operation_timeout=600)
+        transport = Transport(operation_timeout=operation_timeout)
         # not sure if i need to retain the client or the service holds the reference
         self._client = Client(
             wsdl=wsdl,

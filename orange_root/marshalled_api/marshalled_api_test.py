@@ -1,7 +1,12 @@
 import pytest
 
-# from marshalled_api import MARSHALS
 import marshalled_api
+
+# @pytest.fixture(autouse=True)
+# def mock_environment(monkeypatch):
+#    monkeypatch.setenv("TARGET_URL", "https%3A%2F%2Fservicios.pami.org.ar%2Ftrazamed.WebService")
+#    monkeypatch.setenv("CONNECT_TIMEOUT", "30")
+#    monkeypatch.setenv("READ_TIMEOUT", "1800")
 
 
 @pytest.fixture(name="the_agent_credentials")
