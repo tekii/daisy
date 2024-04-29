@@ -1,4 +1,5 @@
 import logging
+import sys
 from flask import jsonify, abort
 from requests import Timeout
 import functions_framework
@@ -38,8 +39,10 @@ def recover_agent_credentials():
 
 
 # the problem initializing this here is that we dont want to run this before the monkeypatch
-_AGENT_CREDENTIALS = None
-
+_AGENT_CREDENTIALS = recover_agent_credentials()
+if _AGENT_CREDENTIALS is None:
+    logging.fatal("_AGENT_CREDENTIALS is undefined.")
+    sys.exit(1)
 
 @functions_framework.errorhandler(Timeout)
 def handle_timeout_error(e):
@@ -81,10 +84,6 @@ def handle_401(e):
 
 @functions_framework.http
 def the_function(request):
-    # pylint: disable=W0603
-    global _AGENT_CREDENTIALS
-    if _AGENT_CREDENTIALS is None:
-        _AGENT_CREDENTIALS = recover_agent_credentials()
     #
     request_json = request.get_json()
     # setup from udc
@@ -118,10 +117,10 @@ def the_function(request):
         # first is the agent to use
         agent = call_args[0]
         # credentials 4 this call
-        agent_credentials = None if _AGENT_CREDENTIALS is None else _AGENT_CREDENTIALS.get(agent)
+        agent_credentials = _AGENT_CREDENTIALS.get(agent)
         # unfortunatly we los all replies if this fails. this is an non critical because only this agent is undef/unauth
         if agent_credentials is None:
-            abort(401, f"Unauthorized or undefined credentials for agent: {agent}")
+            abort(401, f"Unauthorized credentials for agent: {agent}")
 
         replies.append(operation(*call_args, agent_credentials=agent_credentials, mock_data=udc_mock_data))
 

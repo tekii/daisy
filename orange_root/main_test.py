@@ -31,13 +31,13 @@ def post_method(monkeypatch, TEST_AGENT):
 
     # this is a hack until i found how to acces the loaded module from the app,
     # its important to avoid the module to load twice and override the patch
-    import main
-
-    monkeypatch.setattr(
-        main,
-        "recover_agent_credentials",
-        lambda: {TEST_AGENT: {"user": "pruebasws", "password": "Clave1234"}},
-    )
+    #import main
+    #
+    #monkeypatch.setattr(
+    #    main,
+    #    "recover_agent_credentials",
+    #    lambda: {TEST_AGENT: {"user": "pruebasws", "password": "Clave1234"}},
+    #)
 
     yield lambda **kw: _client.post("/", content_type="application/json", **kw)
 
@@ -130,7 +130,7 @@ def test_unauthorized_agent(post_method, MOCK_SINGLE_CALL_REQUEST):
     MOCK_SINGLE_CALL_REQUEST["calls"][0][0] = "0000000000001"
     response = post_method(data=json.dumps(MOCK_SINGLE_CALL_REQUEST))
     assert response.status_code == 401
-    assert response.data == b'{"errorMessage":"Unauthorized or undefined credentials for agent: 0000000000001"}\n'
+    assert response.data == b'{"errorMessage":"Unauthorized credentials for agent: 0000000000001"}\n'
 
 
 @pytest.mark.mock_data
