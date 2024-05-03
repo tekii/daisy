@@ -1,7 +1,7 @@
 import logging
 import sys
 from flask import jsonify, abort
-from requests import Timeout
+from requests import Timeout, ConnectionError #, ConnectTimeout, ReadTimeout
 import functions_framework
 
 from marshals.marshals import *
@@ -44,9 +44,17 @@ if _AGENT_CREDENTIALS is None:
     logging.fatal("_AGENT_CREDENTIALS is undefined.")
     sys.exit(1)
 
+
+@functions_framework.errorhandler(ConnectionError)
+def handle_timeout_error(e):
+    msg = f"Some ConnectionError: {e.args}."
+    logging.error(msg=msg)
+    return jsonify({"errorMessage": msg}), 503
+
+
 @functions_framework.errorhandler(Timeout)
 def handle_timeout_error(e):
-    msg = f"Some timeout error: {e.args}."
+    msg = f"Some Timeout: {e.args}."
     logging.error(msg=msg)
     return jsonify({"errorMessage": msg}), 408
 

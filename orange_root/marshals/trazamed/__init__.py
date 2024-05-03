@@ -87,12 +87,12 @@ class Api:
         # this api is notoriously slow thats why... 600 also this is a candidate to be an ENV var.
         # TODO check the allow max times in Cloud functions and BigQuery
         # we will not attempt any handling other than pass the proper error and relay on the BQ retry criteria
-        transport = Transport(operation_timeout=operation_timeout)
+        #transport = Transport(operation_timeout=operation_timeout)
         # not sure if i need to retain the client or the service holds the reference
         self._client = Client(
             wsdl=wsdl,
             wsse=wsse,
-            transport=transport,
+            #transport=transport,
             settings=settings,
         )
         # instanciate the service pointing to the actual prod/test environment
@@ -181,4 +181,4 @@ class Api:
             )
 
             # return helpers.serialize_object(response.list, dict)
-            return response.list
+            return None if response is None else response.list
