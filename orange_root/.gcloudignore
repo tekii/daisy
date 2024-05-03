@@ -11,4 +11,4 @@ README.md
 pytest.ini
 .gitignore
 *.sql
-*.txt
+notes.txt
