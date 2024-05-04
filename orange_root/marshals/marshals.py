@@ -104,6 +104,8 @@ class _GetTransacciones(Marshal):
                     )
                     d["_id_estado"] = None if d["_id_estado"] is None else int(d["_id_estado"])
                     d["_id_evento"] = None if d["_id_evento"] is None else int(d["_id_evento"])
+                    d["_id_detalle_evento"] = None if d["_id_detalle_evento"] is None else int(d["_id_detalle_evento"])
+
                     del d["_ver2_paciente_apellido"]
                     del d["_ver2_paciente_documento"]
                     del d["_ver2_paciente_id_documento"]
