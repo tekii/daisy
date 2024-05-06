@@ -46,7 +46,7 @@ if _AGENT_CREDENTIALS is None:
 
 
 @functions_framework.errorhandler(ConnectionError)
-def handle_timeout_error(e):
+def handle_connection_error(e):
     msg = f"Some ConnectionError: {e.args}."
     logging.error(msg=msg)
     return jsonify({"errorMessage": msg}), 503
