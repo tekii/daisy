@@ -1,16 +1,20 @@
-""" Marshal / UnMarshal BQ User Define Function return values and args - https://docs.python.org/3/library/marshal.html#id2 """
+""" OperationAdapter / UnMarshal BQ User Define Function return values and args - https://docs.python.org/3/library/marshal.html#id2 """
 
 import os
+import pathlib
 import sys
 import urllib.parse
 import logging
 from abc import ABCMeta, abstractmethod
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, ClassVar, Dict, List, Self, Tuple
 from datetime import datetime
-from zeep import helpers
+from zeep import Client, Settings, helpers
+from zeep.transports import Transport
+from zeep.proxy import ServiceProxy, OperationProxy
+from zeep.wsse.username import UsernameToken
 from .trazamed import Api
 
-__all__ = ["Marshal", "MarshalError", "get_marshal"]
+__all__ = ["OperationAdapter", "MarshalError", "TheService"]
 
 
 class MarshalError(ValueError):
@@ -19,15 +23,25 @@ class MarshalError(ValueError):
         self.code = code
 
 
-class Marshal(metaclass=ABCMeta):
+class OperationAdapter(metaclass=ABCMeta):
     """Manages the marshl/unmarshal to/from bq signature"""
 
-    def __init__(self, the_api: Api, method: Callable) -> None:
-        self._the_api = the_api
-        self._method = method
+    _adapters: ClassVar[Dict[str, type[Self]]] = {}
 
-    # def __init_subclass__(cls) -> None:
-    #    pass
+    def __init__(self, op_proxy: OperationProxy) -> None:
+        # self._the_api = the_api
+        self._proxy: OperationProxy = op_proxy  # type: ignore
+        # self._method = method
+
+    def __init_subclass__(cls, **kwargs) -> None:
+        super().__init_subclass__(**kwargs)
+        name, _ = cls._name_mapping()
+        OperationAdapter._adapters[name] = cls
+
+    @classmethod
+    @abstractmethod
+    def _name_mapping(_) -> Tuple[str, str]:
+        return ("NotImplemented", "")
 
     @abstractmethod
     def load(self, *args):
@@ -44,41 +58,47 @@ class Marshal(metaclass=ABCMeta):
     def __call__(self, *args: Any, agent_credentials: dict, mock_data: bool) -> Any:
         # this function uses only the loaded, pre conditioned dict args
         # https://www.digitalocean.com/community/tutorials/how-to-use-args-and-kwargs-in-python-3
+        #       mock_data=mock_data,
         return self.dump(
-            self._method(
-                self._the_api,
-                usuario_agente_informador=agent_credentials["user"],
-                password_agente_informador=agent_credentials["password"],
-                mock_data=mock_data,
-                **self.load(*args)
-            )
+
+           self._proxy(
+               arg0=agent_credentials["user"],
+               arg1=agent_credentials["password"],
+               **self.load(*args)
+           )
+
         )
 
 
-class _GetTransacciones(Marshal):
+class _GetTransaccionesAdapter(OperationAdapter):
 
-    def __init__(self, the_api: Api, method: Callable):
-        super().__init__(the_api, method)
+    def __init__(self, op_proxy: OperationProxy):
+        super().__init__(op_proxy=op_proxy)
+
+    @classmethod
+    def _name_mapping(_) -> Tuple[str, str]:
+        return ("GET_TRANSACCIONES", "getTransaccionesWS")
 
     def load(self, *args):
         try:
             return {
-                # [indexes] here comes from the BigQuery params order and arg0 is the agent
-                "transaccion_global": None if args[1] is None else int(args[1]),
-                "gln_agente_origen": args[2],
-                "gln_agente_destino": args[3],
-                "gtin_medicamento": args[4],
-                "id_evento": None if args[5] is None else int(args[5]),
-                "f_operacion_desde": None if args[6] is None else datetime.fromisoformat(args[6]).date(),
-                "f_operacion_hasta": None if args[7] is None else datetime.fromisoformat(args[7]).date(),
-                "f_transaccion_desde": None if args[8] is None else datetime.fromisoformat(args[8]),
-                "f_transaccion_hasta": None if args[9] is None else datetime.fromisoformat(args[9]),
-                "f_vencimiento_desde": None if args[10] is None else datetime.fromisoformat(args[10]).date(),
-                "f_vencimiento_hasta": None if args[11] is None else datetime.fromisoformat(args[11]).date(),
-                "remito": args[12],
-                "factura": args[13],
-                "estado": None if args[14] is None else int(args[14]),
-                "pagina": None if args[15] is None else int(args[15]),
+                # None,
+                # None,
+                "arg2": None if args[1] is None else int(args[1]),  # transaccion_global
+                "arg3": args[2],  # gln_agente_origen
+                "arg4": args[3],  # gln_agente_destino
+                "arg5": args[4],  # gtin_medicamento
+                "arg6": None if args[5] is None else int(args[5]),  # arg6 id_evento
+                "arg7": None if args[6] is None else datetime.fromisoformat(args[6]).date().strftime("%d/%m/%Y"),  # f_operacion_desde
+                "arg8": None if args[7] is None else datetime.fromisoformat(args[7]).date().strftime("%d/%m/%Y"),  # f_operacion_hasta
+                "arg9": None if args[8] is None else datetime.fromisoformat(args[8]).strftime("%d/%m/%Y %H:%M"),  # f_transaccion_desde
+                "arg10": None if args[9] is None else datetime.fromisoformat(args[9]).strftime("%d/%m/%Y %H:%M"),  # f_transaccion_hasta
+                "arg11": None if args[10] is None else datetime.fromisoformat(args[10]).date().strftime("%d/%m/%Y"),  # f_vencimiento_desde
+                "arg12": None if args[11] is None else datetime.fromisoformat(args[11]).date().strftime("%d/%m/%Y"),  # f_vencimiento_hasta
+                "arg13": args[12],  # remito
+                "arg14": args[13],  # factura
+                "arg15": None if args[14] is None else int(args[14]),  #  estado
+                "arg16": None if args[15] is None else int(args[15]),  #  pagina
             }
         except ValueError as e:
             raise MarshalError(*e.args, code=400) from None
@@ -89,7 +109,7 @@ class _GetTransacciones(Marshal):
         else:
             try:
                 dumped = []
-                for r in results:
+                for r in results.list:
                     d = helpers.serialize_object(r, dict)
                     d["_f_evento"] = (
                         None if d["_f_evento"] is None else datetime.strptime(d["_f_evento"], "%d/%m/%Y").date().strftime("%Y-%m-%d")
@@ -119,10 +139,14 @@ class _GetTransacciones(Marshal):
                 raise MarshalError(*e.args, code=418) from None
 
 
-class _GetTransaccionesNoConfirmadas(Marshal):
+class _GetTransaccionesNoConfirmadasAdapter(OperationAdapter):
 
-    def __init__(self, the_api: Api, method: Callable):
-        super().__init__(the_api, method)
+    def __init__(self, op_proxy: OperationProxy):
+        super().__init__(op_proxy=op_proxy)
+
+    @classmethod
+    def _name_mapping(_) -> Tuple[str, str]:
+        return ("GET_TRANSACCIONES_NO_CONFIRMADAS", "getTransaccionesNoConfirmadas")
 
     def load(self, *args) -> dict:
         return {}
@@ -131,37 +155,73 @@ class _GetTransaccionesNoConfirmadas(Marshal):
         return []
 
 
-_target_url = os.environ.get("TARGET_URL")
-if _target_url is None:
-    logging.fatal("TARGET_URL undefined.")
-    sys.exit(1)
-else:
-    try:
-        _target_url = urllib.parse.unquote(_target_url)
-    except TypeError as e:
-        pass
+class TheService(object):
 
-_connect_timeout = os.environ.get("CONNECT_TIMEOUT")
-_read_timeout = os.environ.get("READ_TIMEOUT")
-if not _connect_timeout or not _read_timeout:
-    logging.fatal("CONNECT_TIMEOUT or READ_TIMEOUT undefined.")
-    sys.exit(1)
+    def __new__(cls):
+        if not hasattr(cls, "_the_one"):
+            cls._the_one = super().__new__(cls)
+            cls._is_already_configured: bool = False
+            cls._service_proxy: ServiceProxy
+            cls._adapters: Dict[str, type[OperationAdapter]]  # = {}
+        return cls._the_one
 
-try:
-    _timeout = (float(_connect_timeout), float(_read_timeout))
-except ValueError as e:
-    logging.fatal("CONNECT_TIMEOUT or READ_TIMEOUT NaN.")
-    sys.exit(1)
+    @classmethod
+    def configure_or_die(cls):
+        #
+        if not cls._is_already_configured:
+            # dev or prod
+            encoded_target_url = os.environ.get("TARGET_URL")
+            if encoded_target_url is None:
+                logging.fatal("TARGET_URL undefined.")
+                sys.exit(1)
+            else:
+                try:
+                    target_url = urllib.parse.unquote(encoded_target_url)
+                except TypeError as e:
+                    logging.fatal("Error unquoting TARGET_URL.")
+                    sys.exit(1)
+            # timeouts
+            connect_timeout = os.environ.get("CONNECT_TIMEOUT")
+            read_timeout = os.environ.get("READ_TIMEOUT")
+            if not connect_timeout or not read_timeout:
+                logging.fatal("CONNECT_TIMEOUT or READ_TIMEOUT undefined.")
+                sys.exit(1)
+            try:
+                operation_timeout = (float(connect_timeout), float(read_timeout))
+            except ValueError as e:
+                logging.fatal("CONNECT_TIMEOUT or READ_TIMEOUT NaN.")
+                sys.exit(1)
+            # TODO check the allow max times in Cloud functions and BigQuery
+            # we will not attempt any handling other than pass the proper error and relay on the BQ retry criteria
+            transport = Transport(operation_timeout=operation_timeout)
+            # not sure if i need to retain the client or the service holds the reference
+            client = Client(
+                wsdl=pathlib.Path(__file__).resolve().parent.joinpath("trazamed", "trazamed.wsdl").as_uri(),
+                wsse=UsernameToken("testwservice", "testwservicepsw"),
+                # transport=transport,
+                settings=Settings(strict=False, xml_huge_tree=False, force_https=True, raw_response=False),
+            )
+            # instanciate the service pointing to the actual prod/test environment
+            cls._service_proxy = client.create_service(
+                binding_name="{http://business.mywebservice.inssjp.com/}IWebServiceSoapBinding",
+                address=target_url,
+            )
 
-# module scope api
-_api = Api(address=_target_url, operation_timeout=_timeout)
+            cls._is_already_configured = True
 
-_MARSHALS: Dict[str, Marshal] = {
-    "GET_TRANSACCIONES": _GetTransacciones(_api, Api.get_transacciones),
-    "GET_TRANSACCIONES_NO_CONFIRMADAS": _GetTransaccionesNoConfirmadas(_api, Api.get_transacciones_no_confirmadas),
-}
+    # avoiding the temptation of make this an [] operator... 4 now or a context
+    # TODO: it also can raise MethodNotFound exception or similar
+    @classmethod
+    def get_adapter(cls, op_ad_name: str) -> OperationAdapter | None:
 
+        op_adapter_t = OperationAdapter._adapters.get(op_ad_name)
+        if op_adapter_t is None:
+            raise MarshalError([], code=418) from None
 
-def get_marshal(operation: str) -> Marshal | None:
-    # TODO: consider to raise an exception? mmm...
-    return _MARSHALS.get(operation)
+        _, op_real_name = op_adapter_t._name_mapping()
+
+        op_proxy = cls._service_proxy[op_real_name]
+
+        op_adapter = op_adapter_t(op_proxy=op_proxy)
+
+        return op_adapter
