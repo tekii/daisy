@@ -1,5 +1,7 @@
 import pytest
-from .adapter import *
+
+from adapter import OperationAdapter
+from . import *
 from .get_transacciones_adapter import *
 
 
@@ -27,33 +29,33 @@ def complete_args():
     ]
 
 
-def test_get_transacciones_args_full(complete_args, entrenamiento_credentials, testing_service):
+def test_get_transacciones_args_full(complete_args, entrenamiento_credentials, testing_service:type[TheService]):
     operation = "GET_TRANSACCIONES"
-    the_marshal = testing_service.get_marshal(operation)
-    # assert isinstance(the_marshal, testing_service.marshals.Marshal)
-    # assert isinstance(the_marshal, testing_service.marshals._GetTransacciones)
-    _ = the_marshal(*complete_args, agent_credentials=entrenamiento_credentials, mock_data=True)
+    adapter = testing_service.get_adapter(operation)
+    assert isinstance(adapter, OperationAdapter)
+    assert isinstance(adapter, _GetTransaccionesAdapter)
+    _ = adapter(*complete_args, agent_credentials=entrenamiento_credentials, mock_data=True)
     pass
 
 
 @pytest.mark.bad_request
 @pytest.mark.marshal_error
-def test_get_transacciones_args_invalid_isoformat(complete_args, entrenamiento_credentials, testing_service):
+def test_get_transacciones_args_invalid_isoformat(complete_args, entrenamiento_credentials, testing_service:type[TheService]):
     operation = "GET_TRANSACCIONES"
-    the_marshal = testing_service.get_marshal(operation)
-    # assert isinstance(the_marshal, testing_service.Marshal)
-    # assert isinstance(the_marshal, testing_service._GetTransacciones)
+    adapter = testing_service.get_adapter(operation)
+    assert isinstance(adapter, OperationAdapter)
+    assert isinstance(adapter, _GetTransaccionesAdapter)
     invalid = complete_args
     invalid[8] = "2024-12-31T23:59Z03:00"
-    with pytest.raises(testing_service.MarshalError) as e_info:
-        _ = the_marshal(*complete_args, agent_credentials=entrenamiento_credentials, mock_data=True)
+    with pytest.raises(AdapterError) as e_info:
+        _ = adapter(*complete_args, agent_credentials=entrenamiento_credentials, mock_data=True)
     pass
 
 
-def test_get_transacciones_args_all_nulls(entrenamiento_credentials, testing_service):
+def test_get_transacciones_args_all_nulls(entrenamiento_credentials, testing_service:type[TheService]):
     adapter = TheService().get_adapter("GET_TRANSACCIONES")
     assert isinstance(adapter, OperationAdapter)
-    # assert isinstance(the_marshal, testing_service._GetTransacciones)
+    # assert isinstance(adapter, testing_service._GetTransacciones)
     all_null_args = [
         "0000000000000",
         None,
@@ -78,13 +80,10 @@ def test_get_transacciones_args_all_nulls(entrenamiento_credentials, testing_ser
     pass
 
 
-def test_marshalship_singleton(testing_service):
-
+def test_marshalship_singleton(testing_service:type[TheService]):
     there_can_be_only_one = TheService()
+    assert there_can_be_only_one is testing_service
+    assert there_can_be_only_one is testing_service.configure_or_die()
+    #adapter = there_can_be_only_one.get_adapter("GET_TRANSACCIONES")
     pass
-    there_can_be_only_one_ = TheService()
-    pass
-    there_can_be_only_one.configure_or_die()()
-    pass
-    adapter = there_can_be_only_one.get_adapter("GET_TRANSACCIONES")
-    pass
+    

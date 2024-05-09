@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Any, List, Dict, Tuple
 from zeep import helpers
 from zeep.proxy import OperationProxy
-from .adapter import OperationAdapter, AdapterError
+from . import OperationAdapter, AdapterError
 
 __all__ = [
     "_GetTransaccionesNoConfirmadasAdapter",

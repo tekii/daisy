@@ -1,5 +1,5 @@
 import pytest
-from .adapter import *
+from . import *
 
 @pytest.fixture(autouse=False)
 def testing_service(monkeypatch):

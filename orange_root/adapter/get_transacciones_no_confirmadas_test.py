@@ -1,5 +1,5 @@
 import pytest
-from .adapter import *
+from . import *
 from .get_transacciones_no_confirmadas_adapter import *
 
 def test_get_tnc_error_page_too_big(entrenamiento_credentials, testing_service:type[TheService]):
