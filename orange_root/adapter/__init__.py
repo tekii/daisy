@@ -8,6 +8,7 @@ import logging
 from abc import ABCMeta, abstractmethod
 from typing import Any, Callable, ClassVar, Dict, List, Self, Tuple
 from datetime import datetime
+
 #
 from zeep import Client, Settings, helpers
 from zeep.transports import Transport
@@ -44,8 +45,8 @@ class OperationAdapter(metaclass=ABCMeta):
         return ("NotImplemented", "")
 
     @classmethod
-    #@abstractmethod
-    def _mock_data(self, *args):
+    # @abstractmethod
+    def _mock_data(self, arg0, arg1, **kwargs):
         return None
 
     @abstractmethod
@@ -63,10 +64,8 @@ class OperationAdapter(metaclass=ABCMeta):
     def __call__(self, *args: Any, agent_credentials: dict, mock_data: bool) -> Any:
         # this function uses only the loaded, pre conditioned dict args
         # https://www.digitalocean.com/community/tutorials/how-to-use-args-and-kwargs-in-python-3
-        if mock_data:
-            return self.dump(self._mock_data(*args))
-        else:
-            return self.dump(self._proxy(arg0=agent_credentials["user"], arg1=agent_credentials["password"], **self.load(*args)))
+        proxy = self._proxy if not mock_data else self._mock_data
+        return self.dump(proxy(arg0=agent_credentials["user"], arg1=agent_credentials["password"], **self.load(*args)))
 
 
 class TheService(object):
@@ -122,12 +121,12 @@ class TheService(object):
 
             cls._is_already_configured = True
 
-            return cls
+        return cls._the_one
 
     # avoiding the temptation of make this an [] operator... 4 now or a context
     # TODO: it also can raise MethodNotFound exception or similar
     @classmethod
-    def get_adapter(cls, op_ad_name: str) -> OperationAdapter | None:
+    def get_adapter(cls, op_ad_name: str) -> OperationAdapter:
 
         op_adapter_t = OperationAdapter._adapters.get(op_ad_name)
         if op_adapter_t is None:

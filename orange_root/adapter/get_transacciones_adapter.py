@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Any, List, Dict, Tuple
 from zeep import helpers
 from zeep.proxy import OperationProxy
-from .adapter import OperationAdapter, AdapterError
+from . import OperationAdapter, AdapterError
 
 __all__ = [
     "_GetTransaccionesAdapter",
@@ -19,8 +19,8 @@ class _GetTransaccionesAdapter(OperationAdapter):
         return ("GET_TRANSACCIONES", "getTransaccionesWS")
 
     @classmethod
-    def _mock_data(cls, *args):
-        page_num = args[15]
+    def _mock_data(cls, arg0, arg1, **kwargs):
+        page_num = kwargs["arg16"]
         page_len = 100
         offset = (page_num - 1) * page_len
         page_data = cls._mock_data_[offset : offset + page_len]
