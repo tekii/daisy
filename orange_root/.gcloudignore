@@ -12,3 +12,4 @@ pytest.ini
 .gitignore
 *.sql
 notes.txt
+conftest.py
