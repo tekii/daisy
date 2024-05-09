@@ -38,7 +38,7 @@ def get_transacciones(
             arg4=gln_agente_destino,
             arg5=gtin_medicamento,
             arg6=id_evento,
-            arg7=None if f_operacion_desde is None else f_operacion_desde.strftime("%d/%m/&%Y"),
+            arg7=None if f_operacion_desde is None else f_operacion_desde.strftime("%d/%m/%Y"),
             arg8=None if f_operacion_hasta is None else f_operacion_hasta.strftime("%d/%m/%Y"),
             arg9=None if f_transaccion_desde is None else f_transaccion_desde.strftime("%d/%m/%Y %H:%M"),
             arg10=None if f_transaccion_hasta is None else f_transaccion_hasta.strftime("%d/%m/%Y %H:%M"),

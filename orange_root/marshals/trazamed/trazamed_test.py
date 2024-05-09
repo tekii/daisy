@@ -55,17 +55,30 @@ def test_get_transacciones_103_results(the_entrenamiento_api):
     assert len(result) == 3
 
 
-@pytest.mark.skip
+#@pytest.mark.skip
 def test_get_transacciones_from_prod(the_production_api, the_production_secrets):
 
-    user = the_production_secrets["user"]
-    password = the_production_secrets["password"]
+    user = the_production_secrets["7793397010020"]["user"]
+    password = the_production_secrets["7793397010020"]["password"]
+    pass
     result = the_production_api.get_transacciones(
         user,
         password,
-        f_transaccion_desde=datetime.fromisoformat("2013-08-01"),
-        f_transaccion_hasta=datetime.fromisoformat("2013-09-30"),
-        pagina=2,
-        pagina_max_len=50,
+        f_transaccion_desde=datetime.fromisoformat("2024-04-01"),
+        f_transaccion_hasta=datetime.fromisoformat("2024-04-02"),
+        pagina=17,
+        #pagina_max_len=17,
+    )
+    assert len(result) == 100
+
+def test_get_transacciones_no_confirmadas(the_entrenamiento_api):
+
+    result = the_entrenamiento_api.get_transacciones_no_confirmadas(
+        "pruebasws",
+        "Clave1234",
+        #f_transaccion_desde=date.fromisoformat("2023-02-01"),
+        #f_transaccion_hasta=date.fromisoformat("2023-02-28"),
+        pagina=282,
+        pagina_max_result=100,
     )
     assert len(result) == 100

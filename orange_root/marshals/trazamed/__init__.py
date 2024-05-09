@@ -1,6 +1,6 @@
 """ Trazmed """
 
-from typing import Any, Dict, List
+from typing import Any, Callable, Dict, List
 from datetime import date, datetime
 import pathlib
 from zeep import Client, Settings
@@ -8,19 +8,19 @@ from zeep.wsse.username import UsernameToken
 from zeep.plugins import Plugin, HistoryPlugin
 from zeep.transports import Transport
 from zeep import helpers
+from .get_transacciones_no_confirmadas import get_transacciones_no_confirmadas
 
 __version__ = "0.0.0"
 __all__ = [
     "Api",
 ]
 
-type GLN = str  # valid-type: ignore
-type GTIN = str  # mypy: disable-error-code="valid-type"
-type FC = str
+#type str = str  # valid-type: ignore
+#type GTIN = str  # mypy: disable-error-code="valid-type"
+#type str = str
 
 
-class TransaccionesNoConfirmadasResponse:
-    pass
+
 
 
 class TransaccionesResponse:
@@ -101,33 +101,8 @@ class Api:
             address=address,
         )
 
-    def get_transacciones_no_confirmadas(
-        self,
-        # usuario_agente_informador: str,  # change this to interna dict
-        # usuario_password_informador: str,
-        agente_informador: GLN,
-        transaccion_global: int | None = None,  # arg2
-        agente_origen: GLN | None = None,  # arg3
-        agente_destino: GLN | None = None,  # arg4
-        medicamento: GTIN | None = None,  # arg5
-        evento: int | None = None,  # arg6
-        operacion_desde: date | None = None,  # arg7
-        operacion_hasta: date | None = None,  # arg8
-        transaccion_desde: datetime | None = None,  # arg9
-        transaccion_hasta: datetime | None = None,  # arg10
-        vencimiento_desde: date | None = None,  # arg11
-        vencimiento_hasta: date | None = None,  # arg12
-        remito: FC | None = None,  # arg13
-        factura: FC | None = None,  # arg14
-        estado: int | None = None,  # arg15
-        lote: str | None = None,  # arg16
-        serie: str | None = None,  # arg??
-        arg18: str | None = None,  # arg18
-        pagina: int | None = None,  # arg19
-        paginaMaxLen: int | None = None,  # arg20
-        mock_data: bool = False,
-    ) -> List[Dict[str, Any]] | None:
-        return None
+    get_transacciones_no_confirmadas: Callable[..., Any] = get_transacciones_no_confirmadas
+
 
     def get_transacciones(
         self,
@@ -135,9 +110,9 @@ class Api:
         usuario_agente_informador: str,  # arg0
         password_agente_informador: str,  # arg1
         transaccion_global: int | None = None,  # arg2
-        gln_agente_origen: GLN | None = None,  # arg3
-        gln_agente_destino: GLN | None = None,  # arg4
-        gtin_medicamento: GTIN | None = None,  # arg5
+        gln_agente_origen: str | None = None,  # arg3
+        gln_agente_destino: str | None = None,  # arg4
+        gtin_medicamento: str | None = None,  # arg5
         id_evento: int | None = None,  # arg6
         f_operacion_desde: date | None = None,  # arg7
         f_operacion_hasta: date | None = None,  # arg8
@@ -145,8 +120,8 @@ class Api:
         f_transaccion_hasta: datetime | None = None,  # arg10
         f_vencimiento_desde: date | None = None,  # arg11
         f_vencimiento_hasta: date | None = None,  # arg12
-        remito: FC | None = None,  # arg13
-        factura: FC | None = None,  # arg14
+        remito: str | None = None,  # arg13
+        factura: str | None = None,  # arg14
         estado: int | None = None,  # arg15
         pagina: int | None = None,  # arg16
         pagina_max_len: int | None = None,  # arg17
@@ -171,7 +146,7 @@ class Api:
                 arg8=None if f_operacion_hasta is None else f_operacion_hasta.strftime("%d/%m/%Y"),
                 arg9=None if f_transaccion_desde is None else f_transaccion_desde.strftime("%d/%m/%Y %H:%M"),
                 arg10=None if f_transaccion_hasta is None else f_transaccion_hasta.strftime("%d/%m/%Y %H:%M"),
-                arg11=None if f_vencimiento_desde is None else f_vencimiento_desde.strftime("%d/%m/&%Y"),
+                arg11=None if f_vencimiento_desde is None else f_vencimiento_desde.strftime("%d/%m/%Y"),
                 arg12=None if f_vencimiento_hasta is None else f_vencimiento_hasta.strftime("%d/%m/%Y"),
                 arg13=remito,
                 arg14=factura,
