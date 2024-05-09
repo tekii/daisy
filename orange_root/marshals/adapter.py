@@ -8,16 +8,16 @@ import logging
 from abc import ABCMeta, abstractmethod
 from typing import Any, Callable, ClassVar, Dict, List, Self, Tuple
 from datetime import datetime
+#
 from zeep import Client, Settings, helpers
 from zeep.transports import Transport
 from zeep.proxy import ServiceProxy, OperationProxy
 from zeep.wsse.username import UsernameToken
-from .trazamed import Api
 
-__all__ = ["OperationAdapter", "MarshalError", "TheService"]
+__all__ = ["OperationAdapter", "AdapterError", "TheService"]
 
 
-class MarshalError(ValueError):
+class AdapterError(ValueError):
     def __init__(self, *args: object, code: int) -> None:
         super().__init__(*args)
         self.code = code
@@ -43,6 +43,11 @@ class OperationAdapter(metaclass=ABCMeta):
     def _name_mapping(_) -> Tuple[str, str]:
         return ("NotImplemented", "")
 
+    @classmethod
+    #@abstractmethod
+    def _mock_data(self, *args):
+        return None
+
     @abstractmethod
     def load(self, *args):
         """load the positional args of the UDF into the kw ones in the API, need to be override for each operation"""
@@ -58,101 +63,10 @@ class OperationAdapter(metaclass=ABCMeta):
     def __call__(self, *args: Any, agent_credentials: dict, mock_data: bool) -> Any:
         # this function uses only the loaded, pre conditioned dict args
         # https://www.digitalocean.com/community/tutorials/how-to-use-args-and-kwargs-in-python-3
-        #       mock_data=mock_data,
-        return self.dump(
-
-           self._proxy(
-               arg0=agent_credentials["user"],
-               arg1=agent_credentials["password"],
-               **self.load(*args)
-           )
-
-        )
-
-
-class _GetTransaccionesAdapter(OperationAdapter):
-
-    def __init__(self, op_proxy: OperationProxy):
-        super().__init__(op_proxy=op_proxy)
-
-    @classmethod
-    def _name_mapping(_) -> Tuple[str, str]:
-        return ("GET_TRANSACCIONES", "getTransaccionesWS")
-
-    def load(self, *args):
-        try:
-            return {
-                # None,
-                # None,
-                "arg2": None if args[1] is None else int(args[1]),  # transaccion_global
-                "arg3": args[2],  # gln_agente_origen
-                "arg4": args[3],  # gln_agente_destino
-                "arg5": args[4],  # gtin_medicamento
-                "arg6": None if args[5] is None else int(args[5]),  # arg6 id_evento
-                "arg7": None if args[6] is None else datetime.fromisoformat(args[6]).date().strftime("%d/%m/%Y"),  # f_operacion_desde
-                "arg8": None if args[7] is None else datetime.fromisoformat(args[7]).date().strftime("%d/%m/%Y"),  # f_operacion_hasta
-                "arg9": None if args[8] is None else datetime.fromisoformat(args[8]).strftime("%d/%m/%Y %H:%M"),  # f_transaccion_desde
-                "arg10": None if args[9] is None else datetime.fromisoformat(args[9]).strftime("%d/%m/%Y %H:%M"),  # f_transaccion_hasta
-                "arg11": None if args[10] is None else datetime.fromisoformat(args[10]).date().strftime("%d/%m/%Y"),  # f_vencimiento_desde
-                "arg12": None if args[11] is None else datetime.fromisoformat(args[11]).date().strftime("%d/%m/%Y"),  # f_vencimiento_hasta
-                "arg13": args[12],  # remito
-                "arg14": args[13],  # factura
-                "arg15": None if args[14] is None else int(args[14]),  #  estado
-                "arg16": None if args[15] is None else int(args[15]),  #  pagina
-            }
-        except ValueError as e:
-            raise MarshalError(*e.args, code=400) from None
-
-    def dump(self, results) -> List[Dict[str, Any]] | None:
-        if results is None:
-            return None
+        if mock_data:
+            return self.dump(self._mock_data(*args))
         else:
-            try:
-                dumped = []
-                for r in results.list:
-                    d = helpers.serialize_object(r, dict)
-                    d["_f_evento"] = (
-                        None if d["_f_evento"] is None else datetime.strptime(d["_f_evento"], "%d/%m/%Y").date().strftime("%Y-%m-%d")
-                    )
-                    d["_f_transaccion"] = (
-                        None
-                        if d["_f_transaccion"] is None
-                        else datetime.strptime(d["_f_transaccion"], "%d/%m/%Y %H:%M").strftime("%Y-%m-%dT%H:%M")
-                    )
-                    d["_vencimiento"] = (
-                        None if d["_vencimiento"] is None else datetime.strptime(d["_vencimiento"], "%d/%m/%Y").date().strftime("%Y-%m-%d")
-                    )
-                    d["_id_estado"] = None if d["_id_estado"] is None else int(d["_id_estado"])
-                    d["_id_evento"] = None if d["_id_evento"] is None else int(d["_id_evento"])
-                    d["_id_detalle_evento"] = None if d["_id_detalle_evento"] is None else int(d["_id_detalle_evento"])
-
-                    del d["_ver2_paciente_apellido"]
-                    del d["_ver2_paciente_documento"]
-                    del d["_ver2_paciente_id_documento"]
-                    del d["_ver2_paciente_id_obra_social"]
-                    del d["_ver2_paciente_nombre"]
-                    del d["_ver2_paciente_numero_afiliado"]
-                    dumped.append(d)
-                return dumped
-            except ValueError as e:
-                # this is an attemp to diferentiate of the ValueErrors in the request
-                raise MarshalError(*e.args, code=418) from None
-
-
-class _GetTransaccionesNoConfirmadasAdapter(OperationAdapter):
-
-    def __init__(self, op_proxy: OperationProxy):
-        super().__init__(op_proxy=op_proxy)
-
-    @classmethod
-    def _name_mapping(_) -> Tuple[str, str]:
-        return ("GET_TRANSACCIONES_NO_CONFIRMADAS", "getTransaccionesNoConfirmadas")
-
-    def load(self, *args) -> dict:
-        return {}
-
-    def dump(self):
-        return []
+            return self.dump(self._proxy(arg0=agent_credentials["user"], arg1=agent_credentials["password"], **self.load(*args)))
 
 
 class TheService(object):
@@ -162,7 +76,6 @@ class TheService(object):
             cls._the_one = super().__new__(cls)
             cls._is_already_configured: bool = False
             cls._service_proxy: ServiceProxy
-            cls._adapters: Dict[str, type[OperationAdapter]]  # = {}
         return cls._the_one
 
     @classmethod
@@ -209,6 +122,8 @@ class TheService(object):
 
             cls._is_already_configured = True
 
+            return cls
+
     # avoiding the temptation of make this an [] operator... 4 now or a context
     # TODO: it also can raise MethodNotFound exception or similar
     @classmethod
@@ -216,7 +131,7 @@ class TheService(object):
 
         op_adapter_t = OperationAdapter._adapters.get(op_ad_name)
         if op_adapter_t is None:
-            raise MarshalError([], code=418) from None
+            raise AdapterError([], code=418) from None
 
         _, op_real_name = op_adapter_t._name_mapping()
 
