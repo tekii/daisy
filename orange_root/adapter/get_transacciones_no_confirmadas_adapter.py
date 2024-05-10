@@ -26,8 +26,8 @@ class _GetTransaccionesNoConfirmadasAdapter(OperationAdapter):
                 "arg5": args[4],  # gln_agente_destino
                 "arg6": args[5],  # gtin_medicamento
                 "arg7": None if args[6] is None else int(args[6]),  # id_evento,
-                "arg8": None if args[7] is None else datetime.fromisoformat(args[7]).strftime("%d/%m/%Y"),  # f_transaccion_desde
-                "arg9": None if args[8] is None else datetime.fromisoformat(args[8]).strftime("%d/%m/%Y"),  # f_transaccion_hasta
+                "arg8": None if args[7] is None else datetime.fromisoformat(args[7]).date().strftime("%d/%m/%Y"),  # f_transaccion_desde
+                "arg9": None if args[8] is None else datetime.fromisoformat(args[8]).date().strftime("%d/%m/%Y"),  # f_transaccion_hasta
                 "arg10": None if args[9] is None else datetime.fromisoformat(args[9]).date().strftime("%d/%m/%Y"),  # f_operacion_desde
                 "arg11": None if args[10] is None else datetime.fromisoformat(args[10]).date().strftime("%d/%m/%Y"),  # f_operacion_hasta
                 "arg12": None if args[11] is None else datetime.fromisoformat(args[11]).date().strftime("%d/%m/%Y"),  # f_vencimiento_desde
@@ -40,6 +40,7 @@ class _GetTransaccionesNoConfirmadasAdapter(OperationAdapter):
                 "arg19": None if args[18] is None else int(args[18]),  #  pagina
                 "arg20": None if args[19] is None else int(args[19]),  #  pagina_max_result
             }
+
         except ValueError as e:
             raise AdapterError(*e.args, code=400) from None
 

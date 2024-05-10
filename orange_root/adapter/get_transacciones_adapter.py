@@ -1,7 +1,7 @@
 from datetime import datetime
+from types import SimpleNamespace
 from typing import Any, List, Dict, Tuple
 from zeep import helpers
-from zeep.proxy import OperationProxy
 from . import OperationAdapter, AdapterError
 
 __all__ = [
@@ -10,9 +10,6 @@ __all__ = [
 
 
 class _GetTransaccionesAdapter(OperationAdapter):
-
-    def __init__(self, op_proxy: OperationProxy):
-        super().__init__(op_proxy=op_proxy)
 
     @classmethod
     def _name_mapping(_) -> Tuple[str, str]:
@@ -24,7 +21,8 @@ class _GetTransaccionesAdapter(OperationAdapter):
         page_len = 100
         offset = (page_num - 1) * page_len
         page_data = cls._mock_data_[offset : offset + page_len]
-        return None if len(page_data) == 0 else page_data
+        results = SimpleNamespace(list=page_data)
+        return None if len(page_data) == 0 else results
 
     def load(self, *args):
         try:
