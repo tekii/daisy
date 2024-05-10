@@ -29,10 +29,9 @@ class OperationAdapter(metaclass=ABCMeta):
 
     _adapters: ClassVar[Dict[str, type[Self]]] = {}
 
-    def __init__(self, op_proxy: OperationProxy) -> None:
-        # self._the_api = the_api
-        self._proxy: OperationProxy = op_proxy  # type: ignore
-        # self._method = method
+    def __init__(self, op_proxy):
+        self._proxy = op_proxy
+        # self._proxy = op_proxy if op_proxy is not None else self._mock_data
 
     def __init_subclass__(cls, **kwargs) -> None:
         super().__init_subclass__(**kwargs)
@@ -61,11 +60,9 @@ class OperationAdapter(metaclass=ABCMeta):
         """Ensures JSON data respond to https://cloud.google.com/bigquery/docs/remote-functions#json_encoding_of_sql_data_type"""
         return []
 
-    def __call__(self, *args: Any, agent_credentials: dict, mock_data: bool) -> Any:
-        # this function uses only the loaded, pre conditioned dict args
+    def __call__(self, *args: Any, agent_credentials: dict) -> Any:
         # https://www.digitalocean.com/community/tutorials/how-to-use-args-and-kwargs-in-python-3
-        proxy = self._proxy if not mock_data else self._mock_data
-        return self.dump(proxy(arg0=agent_credentials["user"], arg1=agent_credentials["password"], **self.load(*args)))
+        return self.dump(self._proxy(arg0=agent_credentials["user"], arg1=agent_credentials["password"], **self.load(*args)))
 
 
 class TheService(object):
@@ -126,16 +123,16 @@ class TheService(object):
     # avoiding the temptation of make this an [] operator... 4 now or a context
     # TODO: it also can raise MethodNotFound exception or similar
     @classmethod
-    def get_adapter(cls, op_ad_name: str) -> OperationAdapter:
+    def get_adapter(cls, op_ad_name: str, mock_data: bool) -> OperationAdapter:
 
         op_adapter_t = OperationAdapter._adapters.get(op_ad_name)
         if op_adapter_t is None:
             raise AdapterError([], code=418) from None
 
-        _, op_real_name = op_adapter_t._name_mapping()
+        if mock_data:
+            op_proxy = op_adapter_t._mock_data
+        else:
+            _, op_real_name = op_adapter_t._name_mapping()
+            op_proxy = cls._service_proxy[op_real_name]
 
-        op_proxy = cls._service_proxy[op_real_name]
-
-        op_adapter = op_adapter_t(op_proxy=op_proxy)
-
-        return op_adapter
+        return op_adapter_t(op_proxy)

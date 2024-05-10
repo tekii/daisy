@@ -31,10 +31,10 @@ def complete_args():
 
 def test_get_transacciones_args_full(complete_args, entrenamiento_credentials, testing_service:type[TheService]):
     operation = "GET_TRANSACCIONES"
-    adapter = testing_service.get_adapter(operation)
+    adapter = testing_service.get_adapter(operation,True)
     assert isinstance(adapter, OperationAdapter)
     assert isinstance(adapter, _GetTransaccionesAdapter)
-    _ = adapter(*complete_args, agent_credentials=entrenamiento_credentials, mock_data=True)
+    _ = adapter(*complete_args, agent_credentials=entrenamiento_credentials)
     pass
 
 
@@ -42,20 +42,20 @@ def test_get_transacciones_args_full(complete_args, entrenamiento_credentials, t
 @pytest.mark.marshal_error
 def test_get_transacciones_args_invalid_isoformat(complete_args, entrenamiento_credentials, testing_service:type[TheService]):
     operation = "GET_TRANSACCIONES"
-    adapter = testing_service.get_adapter(operation)
+    adapter = testing_service.get_adapter(operation, True)
     assert isinstance(adapter, OperationAdapter)
     assert isinstance(adapter, _GetTransaccionesAdapter)
     invalid = complete_args
     invalid[8] = "2024-12-31T23:59Z03:00"
     with pytest.raises(AdapterError) as e_info:
-        _ = adapter(*complete_args, agent_credentials=entrenamiento_credentials, mock_data=True)
+        _ = adapter(*complete_args, agent_credentials=entrenamiento_credentials)
     pass
 
 
 def test_get_transacciones_args_all_nulls(entrenamiento_credentials, testing_service:type[TheService]):
-    adapter = TheService().get_adapter("GET_TRANSACCIONES")
+    adapter = TheService().get_adapter("GET_TRANSACCIONES",True)
     assert isinstance(adapter, OperationAdapter)
-    # assert isinstance(adapter, testing_service._GetTransacciones)
+    assert isinstance(adapter, _GetTransaccionesAdapter)
     all_null_args = [
         "0000000000000",
         None,
@@ -76,7 +76,7 @@ def test_get_transacciones_args_all_nulls(entrenamiento_credentials, testing_ser
         #        100,
         #        True,
     ]
-    r = adapter(*all_null_args, agent_credentials=entrenamiento_credentials, mock_data=True)
+    r = adapter(*all_null_args, agent_credentials=entrenamiento_credentials)
     pass
 
 

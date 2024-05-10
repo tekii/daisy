@@ -11,9 +11,6 @@ __all__ = [
 
 class _GetTransaccionesNoConfirmadasAdapter(OperationAdapter):
 
-    def __init__(self, op_proxy: OperationProxy):
-        super().__init__(op_proxy=op_proxy)
-
     @classmethod
     def _name_mapping(_) -> Tuple[str, str]:
         return ("GET_TRANSACCIONES_NO_CONFIRMADAS", "getTransaccionesNoConfirmadas")
@@ -47,4 +44,4 @@ class _GetTransaccionesNoConfirmadasAdapter(OperationAdapter):
             raise AdapterError(*e.args, code=400) from None
 
     def dump(self, results):
-        return []
+        return results
