@@ -182,3 +182,14 @@ def test_06(target_service):
         assert str(type(_t)) == "<class 'zeep.objects.transaccionPlainWS'>"
         input_dict = helpers.serialize_object(_t, dict)
         pass
+
+
+def test_07(target_service):
+    #
+    response = target_service.getCatalogoElectronicoByGLN(
+        "pruebasws",
+        "Clave1234",
+        arg7=1,  
+        arg8=50, 
+    )
+    pass
