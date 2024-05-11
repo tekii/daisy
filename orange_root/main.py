@@ -1,10 +1,13 @@
 import logging
 import sys
 from flask import jsonify, abort
-from requests import Timeout, ConnectionError #, ConnectTimeout, ReadTimeout
+from requests import Timeout, ConnectionError  # , ConnectTimeout, ReadTimeout
 import functions_framework
 
-from marshals.marshals import *
+from adapter import *
+from adapter.get_transacciones_adapter import *
+from adapter.get_transacciones_no_confirmadas_adapter import *
+from adapter.get_catalogo_electronico_by_gln_adapter import *
 
 
 # logging.getLogger().setLevel(logging.INFO)
@@ -59,8 +62,8 @@ def handle_timeout_error(e):
     return jsonify({"errorMessage": msg}), 408
 
 
-@functions_framework.errorhandler(MarshalError)
-def handle_marshal_error(e):
+@functions_framework.errorhandler(AdapterError)
+def handle_adapter_error(e):
     msg = f"Some Error [un]marshalling the args or the response: {e.args}."
     logging.error(msg=msg)
     return jsonify({"errorMessage": msg}), e.code
@@ -89,6 +92,8 @@ def handle_401(e):
 # 503 Service Unavailable
 # 504 Gateway Timeout
 
+TheService().configure_or_die()
+
 
 @functions_framework.http
 def the_function(request):
@@ -110,7 +115,7 @@ def the_function(request):
         abort(400, f"Missing key {e} accesing userDefinedContext.")
 
     # which operation
-    operation: Marshal | None = get_marshal(udc_soap_operation)
+    operation: OperationAdapter | None = TheService().get_adapter(udc_soap_operation, udc_mock_data)
     if operation is None:
         abort(400, f"Unkown soap operation{udc_soap_operation}.")
 
@@ -130,7 +135,7 @@ def the_function(request):
         if agent_credentials is None:
             abort(401, f"Unauthorized credentials for agent: {agent}")
 
-        replies.append(operation(*call_args, agent_credentials=agent_credentials, mock_data=udc_mock_data))
+        replies.append(operation(*call_args, agent_credentials=agent_credentials))
 
     # https://cloud.google.com/bigquery/docs/remote-functions#http_response_code
     # https://cloud.google.com/bigquery/docs/remote-functions#output_format
