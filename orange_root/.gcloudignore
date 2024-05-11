@@ -13,3 +13,4 @@ pytest.ini
 *.sql
 notes.txt
 conftest.py
+adapter/trazamed
