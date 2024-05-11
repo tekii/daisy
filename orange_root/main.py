@@ -1,9 +1,13 @@
 import logging
+import sys
 from flask import jsonify, abort
-from requests import Timeout
+from requests import Timeout, ConnectionError  # , ConnectTimeout, ReadTimeout
 import functions_framework
 
-from api.marshal import *
+from adapter import *
+from adapter.get_transacciones_adapter import *
+from adapter.get_transacciones_no_confirmadas_adapter import *
+from adapter.get_catalogo_electronico_by_gln_adapter import *
 
 
 # logging.getLogger().setLevel(logging.INFO)
@@ -38,18 +42,28 @@ def recover_agent_credentials():
 
 
 # the problem initializing this here is that we dont want to run this before the monkeypatch
-_AGENT_CREDENTIALS = None
+_AGENT_CREDENTIALS = recover_agent_credentials()
+if _AGENT_CREDENTIALS is None:
+    logging.fatal("_AGENT_CREDENTIALS is undefined.")
+    sys.exit(1)
+
+
+@functions_framework.errorhandler(ConnectionError)
+def handle_connection_error(e):
+    msg = f"Some ConnectionError: {e.args}."
+    logging.error(msg=msg)
+    return jsonify({"errorMessage": msg}), 503
 
 
 @functions_framework.errorhandler(Timeout)
 def handle_timeout_error(e):
-    msg = f"Some timeout error: {e.args}."
+    msg = f"Some Timeout: {e.args}."
     logging.error(msg=msg)
     return jsonify({"errorMessage": msg}), 408
 
 
-@functions_framework.errorhandler(MarshalError)
-def handle_marshal_error(e):
+@functions_framework.errorhandler(AdapterError)
+def handle_adapter_error(e):
     msg = f"Some Error [un]marshalling the args or the response: {e.args}."
     logging.error(msg=msg)
     return jsonify({"errorMessage": msg}), e.code
@@ -78,13 +92,11 @@ def handle_401(e):
 # 503 Service Unavailable
 # 504 Gateway Timeout
 
+TheService().configure_or_die()
+
 
 @functions_framework.http
 def the_function(request):
-    # pylint: disable=W0603
-    global _AGENT_CREDENTIALS
-    if _AGENT_CREDENTIALS is None:
-        _AGENT_CREDENTIALS = recover_agent_credentials()
     #
     request_json = request.get_json()
     # setup from udc
@@ -103,7 +115,7 @@ def the_function(request):
         abort(400, f"Missing key {e} accesing userDefinedContext.")
 
     # which operation
-    operation: Marshal | None = get_marshal(udc_soap_operation)
+    operation: OperationAdapter | None = TheService().get_adapter(udc_soap_operation, udc_mock_data)
     if operation is None:
         abort(400, f"Unkown soap operation{udc_soap_operation}.")
 
@@ -118,12 +130,12 @@ def the_function(request):
         # first is the agent to use
         agent = call_args[0]
         # credentials 4 this call
-        agent_credentials = None if _AGENT_CREDENTIALS is None else _AGENT_CREDENTIALS.get(agent)
+        agent_credentials = _AGENT_CREDENTIALS.get(agent)
         # unfortunatly we los all replies if this fails. this is an non critical because only this agent is undef/unauth
         if agent_credentials is None:
-            abort(401, f"Unauthorized or undefined credentials for agent: {agent}")
+            abort(401, f"Unauthorized credentials for agent: {agent}")
 
-        replies.append(operation(*call_args, agent_credentials=agent_credentials, mock_data=udc_mock_data))
+        replies.append(operation(*call_args, agent_credentials=agent_credentials))
 
     # https://cloud.google.com/bigquery/docs/remote-functions#http_response_code
     # https://cloud.google.com/bigquery/docs/remote-functions#output_format

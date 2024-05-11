@@ -31,13 +31,13 @@ def post_method(monkeypatch, TEST_AGENT):
 
     # this is a hack until i found how to acces the loaded module from the app,
     # its important to avoid the module to load twice and override the patch
-    import main
-
-    monkeypatch.setattr(
-        main,
-        "recover_agent_credentials",
-        lambda: {TEST_AGENT: {"user": "pruebasws", "password": "Clave1234"}},
-    )
+    # import main
+    #
+    # monkeypatch.setattr(
+    #    main,
+    #    "recover_agent_credentials",
+    #    lambda: {TEST_AGENT: {"user": "pruebasws", "password": "Clave1234"}},
+    # )
 
     yield lambda **kw: _client.post("/", content_type="application/json", **kw)
 
@@ -130,7 +130,7 @@ def test_unauthorized_agent(post_method, MOCK_SINGLE_CALL_REQUEST):
     MOCK_SINGLE_CALL_REQUEST["calls"][0][0] = "0000000000001"
     response = post_method(data=json.dumps(MOCK_SINGLE_CALL_REQUEST))
     assert response.status_code == 401
-    assert response.data == b'{"errorMessage":"Unauthorized or undefined credentials for agent: 0000000000001"}\n'
+    assert response.data == b'{"errorMessage":"Unauthorized credentials for agent: 0000000000001"}\n'
 
 
 @pytest.mark.mock_data
@@ -195,25 +195,50 @@ def test_mock_dateset_single_call_no_result(post_method, MOCK_SINGLE_CALL_REQUES
 @pytest.mark.environment_undefined
 def test_environment_undefined_connect_timeout(monkeypatch):
     monkeypatch.delenv("CONNECT_TIMEOUT")
-    mod = importlib.import_module("api.marshal")
+    mod = importlib.import_module("adapter")
     with pytest.raises(SystemExit) as e:
-        importlib.reload(mod)
+        service = mod.TheService()
+        service.configure_or_die()
     assert e.type == SystemExit
 
 
 @pytest.mark.environment_undefined
 def test_environment_undefined_read_timeout(monkeypatch):
     monkeypatch.delenv("READ_TIMEOUT")
-    mod = importlib.import_module("api.marshal")
+    mod = importlib.import_module("adapter")
     with pytest.raises(SystemExit) as e:
-        importlib.reload(mod)
+        service = mod.TheService()
+        service.configure_or_die()
     assert e.type == SystemExit
 
 
 @pytest.mark.environment_undefined
 def test_environment_undefined_target_url(monkeypatch):
     monkeypatch.delenv("TARGET_URL")
-    mod = importlib.import_module("api.marshal")
+    mod = importlib.import_module("adapter")
     with pytest.raises(SystemExit) as e:
         importlib.reload(mod)
+        service = mod.TheService()
+        service.configure_or_die()
     assert e.type == SystemExit
+
+
+@pytest.mark.mock_data
+def test_mock_get_catalogo_dateset_some(post_method):
+    # MOCK_SINGLE_CALL_REQUEST["userDefinedContext"]["mock_data"] = ""
+    test_request = {
+        "requestId": "124ab1c",
+        "caller": "//dummy.example.com/projects/dummy/jobs/dummy:US.dummy_id",
+        "sessionUser": "test-user@test-company.com",
+        "userDefinedContext": {"soap_operation": "GET_CATALOGO_ELECTRONICO_BY_GLN", "no_mock_data": ""},
+        "calls": [["glnws", None, None, None, None, None, 1, 100]],
+    }
+    response = post_method(data=json.dumps(test_request))
+    assert response.status_code == 200
+    data = json.loads(response.data)
+    assert "replies" in data
+    replies = data["replies"]
+    assert len(replies) == 1
+    reply = replies[0]
+    # need to decide if the right empty result is None or []
+    assert reply is not None

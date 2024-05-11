@@ -11,4 +11,6 @@ README.md
 pytest.ini
 .gitignore
 *.sql
-*.txt
+notes.txt
+conftest.py
+adapter/trazamed
