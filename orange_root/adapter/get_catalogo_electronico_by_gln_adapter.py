@@ -46,9 +46,7 @@ class _GetCatalogoElectronicoByGLNAdapter(OperationAdapter):
                         None if d["fecha_baja"] is None else datetime.strptime(d["fecha_baja"], "%d/%m/%Y").date().strftime("%Y-%m-%d")
                     )
                     d["fecha_ult_modificacion"] = (
-                        None
-                        if d["fecha_ult_modificacion"] is None
-                        else datetime.strptime(d["fecha_ult_modificacion"], "%d/%m/%Y %H:%M").strftime("%Y-%m-%dT%H:%M")
+                        None if d["fecha_ult_modificacion"] is None else datetime.strptime(d["fecha_ult_modificacion"], "%d/%m/%Y").date().strftime("%Y-%m-%d")
                     )
                     d["id_localidad"] = None if d["id_localidad"] is None else int(d["id_localidad"])
                     d["id_provincia"] = None if d["id_provincia"] is None else int(d["id_provincia"])
