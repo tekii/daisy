@@ -79,7 +79,7 @@ class Api:
 
     def __init__(self, address, operation_timeout):
         # uses the local wsdl file placed in the same folder of this file
-        wsdl = pathlib.Path(__file__).resolve().parent.joinpath("trazamed.wsdl").as_uri()
+        wsdl = pathlib.Path(__file__).resolve().parent.joinpath("..","trazamed.wsdl").as_uri()
         #
         settings = Settings(strict=False, xml_huge_tree=False, force_https=True, raw_response=False)
         # yes its sad...

@@ -105,7 +105,7 @@ class TheService(object):
             transport = Transport(operation_timeout=operation_timeout)
             # not sure if i need to retain the client or the service holds the reference
             client = Client(
-                wsdl=pathlib.Path(__file__).resolve().parent.joinpath("trazamed", "trazamed.wsdl").as_uri(),
+                wsdl=pathlib.Path(__file__).resolve().parent.joinpath("trazamed.wsdl").as_uri(),
                 wsse=UsernameToken("testwservice", "testwservicepsw"),
                 # transport=transport,
                 settings=Settings(strict=False, xml_huge_tree=False, force_https=True, raw_response=False),
