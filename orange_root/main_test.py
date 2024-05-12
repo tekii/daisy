@@ -229,7 +229,7 @@ def test_mock_get_catalogo_dateset_some(post_method):
         "requestId": "124ab1c",
         "caller": "//dummy.example.com/projects/dummy/jobs/dummy:US.dummy_id",
         "sessionUser": "test-user@test-company.com",
-        "userDefinedContext": {"soap_operation": "GET_CATALOGO_ELECTRONICO_BY_GLN", "no_mock_data": ""},
+        "userDefinedContext": {"soap_operation": "GET_CATALOGO_ELECTRONICO_BY_GLN", "mock_data": ""},
         "calls": [["glnws", None, None, None, None, None, 1, 100]],
     }
     response = post_method(data=json.dumps(test_request))
