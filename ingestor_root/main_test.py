@@ -4,12 +4,13 @@ import pathlib
 import pytest
 
 from typing import Any
-from cloudevents.http import CloudEvent, to_structured
+from cloudevents.http import CloudEvent  # , to_structured
+from cloudevents.conversion import to_structured
 from functions_framework import create_app
 
 # import pretend
 
-import google.auth
+# import google.auth
 
 
 @pytest.fixture(autouse=True)
@@ -19,21 +20,21 @@ def mock_secrets(monkeypatch):
     monkeypatch.setenv(DAISY_SUBJECT_ACCOUNTS, "PR@legacy.tekii.com.ar;QUEUE@margot.tekii.com.ar")
 
 
-@pytest.fixture(autouse=True)
-def mock_credentials(monkeypatch):
-    from google.oauth2 import service_account
-
-    monkeypatch.setattr(
-        google.auth,
-        "default",
-        lambda: (
-            service_account.Credentials.from_service_account_file(
-                "./.secrets/mock_credentials.json",
-                scopes=["https://www.googleapis.com/auth/cloud-platform"],
-            ),
-            None,
-        ),
-    )
+# @pytest.fixture(autouse=True)
+# def mock_credentials(monkeypatch):
+#    from google.oauth2 import service_account
+#
+#    monkeypatch.setattr(
+#        google.auth,
+#        "default",
+#        lambda: (
+#            service_account.Credentials.from_service_account_file(
+#                "../.secrets/mock_credentials.json",
+#                scopes=["https://www.googleapis.com/auth/cloud-platform"],
+#            ),
+#            None,
+#        ),
+#    )
 
 
 @pytest.fixture
@@ -92,9 +93,7 @@ def test_02(capsys, mock_ce):
     from main import the_function
 
     event = mock_ce
-    event.data["message"]["data"] = message_encode_helper(
-        payload={"emailAddress": "pr@legacy.tekii.com.ar", "historyId": "13617000"}
-    )
+    event.data["message"]["data"] = message_encode_helper(payload={"emailAddress": "pr@legacy.tekii.com.ar", "historyId": "13617000"})
     the_function(event)
     out, _ = capsys.readouterr()
     # assert "pr@legacy.tekii.com.ar\n13617000\n" == out
@@ -160,9 +159,7 @@ def test_09(client, mock_ce):
 
 def test_19(client, mock_ce):
     ce = mock_ce
-    ce.data["message"]["data"] = message_encode_helper(
-        {"emailAddress": "mg@legacy.tekii.com.ar", "historyId": "13617000"}
-    )
+    ce.data["message"]["data"] = message_encode_helper({"emailAddress": "mg@legacy.tekii.com.ar", "historyId": "13617000"})
 
     headers, data = to_structured(ce)
     response = client.post("/", headers=headers, data=data)

@@ -1,5 +1,6 @@
-#
 cloudevents==1.10.*
 functions-framework==3.7.*
 google-api-python-client==2.132.*
 google-cloud-bigquery-storage
+pandas
+pandas-gbq

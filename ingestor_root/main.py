@@ -9,8 +9,8 @@ from google.auth.transport import requests
 from google.auth.exceptions import GoogleAuthError
 from google.oauth2 import service_account
 
-from gmail import dummy
-from helper import dummy as d2
+# from gmail import dummy
+# from helper import dummy as d2
 
 DAISY_SUBJECT_ACCOUNTS = "DAISY_SUBJECT_ACCOUNTS"
 
@@ -30,10 +30,15 @@ def the_function(cloud_event):
     subjects = subjects.lower().split(";")
 
     # decode the PubSub message in the payload
+    # https://cloud.google.com/eventarc/docs/workflows/cloudevents#payload-format
     try:
         data = json.loads(base64.b64decode(cloud_event.data["message"]["data"]).decode("utf-8"))
+        # https://medium.com/@eagnir/understanding-gmails-push-notifications-via-google-cloud-pub-sub-3a002f9350ef#:~:text=as%20shown%20below.-,%7B%22emailAddress%22%3A%22your%40email.com%22%2C%22historyId%22%3A12415731%7D,-All%20you%20have
         subject = data["emailAddress"]
         historyId = data["historyId"]
+
+        # whit this call users.history.list
+
     except (KeyError, json.JSONDecodeError) as e:
         abort(500, description=(f"Exception decoding PubSub message: {repr(e)}"))
 
@@ -59,5 +64,5 @@ def the_function(cloud_event):
     except GoogleAuthError as e:
         abort(500, description=(f"Some credentials related problem: {repr(e)}"))
 
-    dummy()
-    d2()
+    # dummy()
+    # d2()
