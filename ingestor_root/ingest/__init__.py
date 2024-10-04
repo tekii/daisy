@@ -2,7 +2,7 @@
 
 from email.utils import parsedate_to_datetime
 import pandas as pd
-import pandas_gbq
+import pandas_gbq  # type: ignore[import-untyped]
 
 __all__ = ["append_events_rows"]
 
