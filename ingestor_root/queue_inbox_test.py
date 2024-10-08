@@ -7,23 +7,21 @@ import pytest
 
 
 @pytest.fixture()
-def the_ingestor_queue_under_test(ingestor_queue_service_account_credentials):
-    import event_queue
+def the_queue_inbox(ingestor_queue_service_account_credentials):
+    import queue_inbox
 
-    return event_queue
+    return queue_inbox
 
 
-def test_configure_or_die(the_ingestor_queue_under_test):
+def test_configure_or_die(queue_inbox):
 
-    ingestor_queue = the_ingestor_queue_under_test
-
-    delegated_credentials = ingestor_queue.get_delegated_credentials_or_die(
+    delegated_credentials = queue_inbox.get_delegated_credentials_or_die(
         subject="queue@margot.tekii.com.ar", scopes=["https://www.googleapis.com/auth/gmail.readonly"]
     )
 
     print()
 
-    for stream, start_history_id, message_id, message_date, attach_id, filename in ingestor_queue.attachments_since(
+    for stream, start_history_id, message_id, message_date, attach_id, filename in queue_inbox.attachments_since(
         start_history_id=4255018, credentials=delegated_credentials
     ):
         # while True:

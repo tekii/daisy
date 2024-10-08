@@ -1,7 +1,7 @@
 """ """
 
 import logging
-from google.auth import default, iam
+from google.auth import default as default_credentials, iam
 from google.auth.transport import requests
 
 # from google.auth.exceptions import GoogleAuthError
@@ -27,7 +27,7 @@ def get_delegated_credentials_or_die(subject, scopes):
     if _delegated_credentials is None:
 
         # no, then gets the default credentials for the current environment.
-        credentials, _ = default()
+        credentials, _ = default_credentials()
 
         try:
             # this case is if the credential cames from a JWT file
