@@ -146,7 +146,7 @@ def attachments_since(start_history_id, credentials):
                                     case {"name": "Subject", "value": value}:
                                         subject = value
                                     case {"name": "Date", "value": value}:
-                                        date = value
+                                        date = parsedate_to_datetime(value)
                                     case {"name": "From", "value": value}:
                                         from_ = value
                             # check payload mimeType
@@ -181,7 +181,7 @@ def attachments_since(start_history_id, credentials):
                                                 stream,
                                                 str(start_history_id),
                                                 message_id,
-                                                parsedate_to_datetime(date),
+                                                date,
                                                 attachment_id,
                                                 filename,
                                             )
