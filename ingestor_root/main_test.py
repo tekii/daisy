@@ -8,33 +8,14 @@ from cloudevents.http import CloudEvent  # , to_structured
 from cloudevents.conversion import to_structured
 from functions_framework import create_app
 
+
 # import pretend
-
-# import google.auth
-
-
 @pytest.fixture(autouse=True)
-def mock_secrets(monkeypatch):
+def mock_secrets(ingestor_queue_service_account_credentials, monkeypatch):
+    # the first fixture is ingestor_queue_service_account_credentials before importing main below
     from main import DAISY_SUBJECT_ACCOUNTS
 
-    monkeypatch.setenv(DAISY_SUBJECT_ACCOUNTS, "PR@legacy.tekii.com.ar;QUEUE@margot.tekii.com.ar")
-
-
-# @pytest.fixture(autouse=True)
-# def mock_credentials(monkeypatch):
-#    from google.oauth2 import service_account
-#
-#    monkeypatch.setattr(
-#        google.auth,
-#        "default",
-#        lambda: (
-#            service_account.Credentials.from_service_account_file(
-#                "../.secrets/mock_credentials.json",
-#                scopes=["https://www.googleapis.com/auth/cloud-platform"],
-#            ),
-#            None,
-#        ),
-#    )
+    monkeypatch.setenv(DAISY_SUBJECT_ACCOUNTS, "PR@legacy.tekii.com.ar;QUEUE@margot.tekii.com.ar;queue@margot.tekii.com.ar")
 
 
 @pytest.fixture
@@ -59,7 +40,7 @@ def mock_ce():
     attributes = {
         #'specversion': '1.0',
         #'id': '4707084296741162',
-        "source": "//pubsub.googleapis.com/projects/daisy-dev01/topics/gmail-watch",
+        "source": "//pubsub.googleapis.com/projects/daisy-dev01/topics/ingestor-queue",
         "type": "google.cloud.pubsub.topic.v1.messagePublished",
         #'datacontenttype': 'application/json',
         #'time': '2022-07-18T23:07:39.111Z'
@@ -159,7 +140,7 @@ def test_09(client, mock_ce):
 
 def test_19(client, mock_ce):
     ce = mock_ce
-    ce.data["message"]["data"] = message_encode_helper({"emailAddress": "mg@legacy.tekii.com.ar", "historyId": "13617000"})
+    ce.data["message"]["data"] = message_encode_helper({"emailAddress": "queue@margot.tekii.com.ar", "historyId": "4255018"})
 
     headers, data = to_structured(ce)
     response = client.post("/", headers=headers, data=data)

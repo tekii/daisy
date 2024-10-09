@@ -16,6 +16,8 @@ from email.utils import parsedate_to_datetime
 
 __all__ = ["get_delegated_credentials_or_die", "attachments_since"]
 
+_logger = logging.getLogger("INGESTOR")
+
 _delegated_credentials = None
 
 
@@ -52,58 +54,19 @@ def get_delegated_credentials_or_die(subject, scopes):
                 scopes=scopes,
                 subject=subject,
             )
+        # except GoogleAuthError as e:
+        #    _logger.exception(e)  #    f"Some credentials related problem: {repr(e)}"
+        #    raise
+
         except Exception:
             raise
 
     return _delegated_credentials
 
 
-# class TheIngestorQueue(object):
-#    def __new__(cls):
-#        if not hasattr(cls, "_the_one_and_only"):
-#            cls._the_one_and_only = super().__new__(cls)
-#            cls._is_already_configured: bool = False  # type: ignore[annotation-unchecked]
-#            # cls._service_proxy: ServiceProxy
-#
-#        return cls._the_one_and_only
-#
-#    @classmethod
-#    def configure_or_die(cls, credentials=None):
-#        if not cls._is_already_configured:
-#
-#            credentials, project_id = default()
-#
-#            delegated_credentials = get_ingestor_queue_delegated_credential(
-#                credentials=credentials, subject="queue@margot.tekii.com.ar", scopes=["https://www.googleapis.com/auth/gmail.readonly"]
-#            )
-#
-#            #
-#            cls._gmail_client = build("gmail", "v1", credentials=delegated_credentials)
-#
-#            #
-#            cls._is_already_configured = True
-#
-#        return cls._the_one_and_only
-#
-#    @classmethod
-#    def watch(cls):
-#        topic = "projects/daisy-dev01/topics/gmail-watch"
-#        label = "INBOX"
-#        request = {"labelIds": [label], "topicName": topic}
-#        try:
-#            result = cls._gmail_client.users().watch(userId="me", body=request).execute()
-#        except HttpError as error:
-#            # TODO(developer) - Handle errors from gmail API.
-#            print(f"An error occurred: {error}")
-#
-#    @classmethod
-#    def stop(cls):
-#        pass
-
-
 def attachments_since(start_history_id, credentials):
     #
-    logging.info(f"Attempting to retrieve history since {str(start_history_id)}.")
+    _logger.info(f"Attempting to retrieve history since {str(start_history_id)}.")
 
     client = build("gmail", "v1", credentials=credentials)
 
@@ -175,7 +138,7 @@ def attachments_since(start_history_id, credentials):
                                         #    with Base64IO(encoded_stream) as stream:
                                         try:
                                             #
-                                            logging.info(f"Yielding attachment {filename}.")
+                                            _logger.info(f"Yielding attachment {filename}.")
                                             #
                                             yield (
                                                 stream,

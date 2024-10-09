@@ -1,21 +1,18 @@
 import os
 import base64
 import json
+import logging
 import functions_framework
 from flask import abort
 
-from google.auth import default as default_credentials, iam
-from google.auth.transport import requests
-from google.auth.exceptions import GoogleAuthError
-from google.oauth2 import service_account
-
-# from gmail import dummy
-# from helper import dummy as d2
+import queue_inbox
 
 DAISY_SUBJECT_ACCOUNTS = "DAISY_SUBJECT_ACCOUNTS"
 
+_logger = logging.getLogger("INGESTOR")
 
-# Triggered from a message on a Cloud Pub/Sub topic.
+
+# Triggered from a message on a Cloud Pub/Sub topic ingestor-queue.
 @functions_framework.cloud_event
 def the_function(cloud_event):
 
@@ -30,10 +27,8 @@ def the_function(cloud_event):
     subjects = subjects.lower().split(";")
 
     # decode the PubSub message in the payload
-    # https://cloud.google.com/eventarc/docs/workflows/cloudevents#payload-format
     try:
         data = json.loads(base64.b64decode(cloud_event.data["message"]["data"]).decode("utf-8"))
-        # https://medium.com/@eagnir/understanding-gmails-push-notifications-via-google-cloud-pub-sub-3a002f9350ef#:~:text=as%20shown%20below.-,%7B%22emailAddress%22%3A%22your%40email.com%22%2C%22historyId%22%3A12415731%7D,-All%20you%20have
         subject = data["emailAddress"]
         historyId = data["historyId"]
 
@@ -42,27 +37,20 @@ def the_function(cloud_event):
     except (KeyError, json.JSONDecodeError) as e:
         abort(500, description=(f"Exception decoding PubSub message: {repr(e)}"))
 
+    _logger.info(f"The subject is {subject}")
+
     # validate subject
     if subject not in subjects:
         abort(500, description=("'subject' is not in DAISY_SUBJECT_ACCOUNTS."))
 
-    #
-    try:
-        credentials, _ = default_credentials()
-        request = requests.Request()
-        credentials.refresh(request)
+    # gets the credentials with inbox access
+    delegated_credentials = queue_inbox.get_delegated_credentials_or_die(
+        subject=subject, scopes=["https://www.googleapis.com/auth/gmail.readonly"]
+    )
 
-        signer = iam.Signer(request, credentials, credentials.service_account_email)
-
-        updated_credentials = service_account.Credentials(
-            signer,
-            credentials.service_account_email,
-            "https://accounts.google.com/o/oauth2/token",
-            scopes=["https://www.googleapis.com/auth/gmail.readonly"],
-            subject=subject,
-        )
-    except GoogleAuthError as e:
-        abort(500, description=(f"Some credentials related problem: {repr(e)}"))
-
-    # dummy()
-    # d2()
+    # iterate over
+    for stream, start_history_id, message_id, message_date, attach_id, filename in queue_inbox.attachments_since(
+        start_history_id=int(historyId), credentials=delegated_credentials
+    ):
+        _logger.info(f"date:{message_date} filename:{filename}")
+        pass
