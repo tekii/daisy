@@ -5,7 +5,7 @@ import logging
 import functions_framework
 from flask import abort
 
-import queue_inbox
+import inbox
 
 DAISY_SUBJECT_ACCOUNTS = "DAISY_SUBJECT_ACCOUNTS"
 
@@ -44,12 +44,12 @@ def the_function(cloud_event):
         abort(500, description=("'subject' is not in DAISY_SUBJECT_ACCOUNTS."))
 
     # gets the credentials with inbox access
-    delegated_credentials = queue_inbox.get_delegated_credentials_or_die(
+    delegated_credentials = inbox.get_delegated_credentials_or_die(
         subject=subject, scopes=["https://www.googleapis.com/auth/gmail.readonly"]
     )
 
     # iterate over
-    for stream, start_history_id, message_id, message_date, attach_id, filename in queue_inbox.attachments_since(
+    for stream, start_history_id, message_id, message_date, attach_id, filename in inbox.attachments_since(
         start_history_id=int(historyId), credentials=delegated_credentials
     ):
         _logger.info(f"date:{message_date} filename:{filename}")
