@@ -101,17 +101,21 @@ def attachments_since(start_history_id, credentials):
                             message = client.users().messages().get(userId="me", id=message_id).execute()
                             # cherry pick headers
                             headers = message["payload"]["headers"]
-                            subject = None
-                            date = None
-                            from_ = None
+                            header_subject = None
+                            header_date = None
+                            header_from = None
                             for header in headers:
                                 match header:
                                     case {"name": "Subject", "value": value}:
-                                        subject = value
+                                        header_subject = value
                                     case {"name": "Date", "value": value}:
-                                        date = parsedate_to_datetime(value)
+                                        # header_date = value
+                                        header_date = parsedate_to_datetime(value)
                                     case {"name": "From", "value": value}:
-                                        from_ = value
+                                        header_from = value
+                                    case {"name": "Subject", "value": value}:
+                                        header_subject = value
+
                             # check payload mimeType
                             for part in message["payload"]["parts"]:
                                 filename = part["filename"]
@@ -142,9 +146,12 @@ def attachments_since(start_history_id, credentials):
                                             #
                                             yield (
                                                 stream,
-                                                str(start_history_id),
+                                                #                                                str(start_history_id),
+                                                start_history_id,
                                                 message_id,
-                                                date,
+                                                header_from,
+                                                header_date,
+                                                header_subject,
                                                 attachment_id,
                                                 filename,
                                             )

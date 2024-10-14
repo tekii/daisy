@@ -7,13 +7,12 @@ from google.oauth2 import service_account
 
 
 def _default(scopes: Any | None = ["https://www.googleapis.com/auth/gmail.readonly", "https://www.googleapis.com/auth/cloud-platform"]):
-
-    creds = service_account.Credentials.from_service_account_file(
+    """Replaces the current default credentials w/ de test-runner ones."""
+    credentials = service_account.Credentials.from_service_account_file(
         "../.secrets/test-runner-credentials.json",
         scopes=scopes,
     )
-
-    return creds, "daisy-dev01"
+    return credentials, "daisy-dev01"
 
 
 @pytest.fixture(autouse=False)

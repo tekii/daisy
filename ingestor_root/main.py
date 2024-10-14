@@ -49,7 +49,7 @@ def the_function(cloud_event):
     )
 
     # iterate over
-    for stream, start_history_id, message_id, message_date, attach_id, filename in inbox.attachments_since(
+    for stream, history_id, message_id, message_from, message_date, message_subject, attachment_id, filename in inbox.attachments_since(
         start_history_id=int(historyId), credentials=delegated_credentials
     ):
         _logger.info(f"date:{message_date} filename:{filename}")

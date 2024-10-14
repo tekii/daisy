@@ -20,12 +20,12 @@ def test_configure_or_die(the_inbox):
         subject="queue@margot.tekii.com.ar", scopes=["https://www.googleapis.com/auth/gmail.readonly"]
     )
 
-    for stream, start_history_id, message_id, message_date, attach_id, filename in the_inbox.attachments_since(
+    for stream, history_id, message_id, message_from, message_date, message_subject, attachment_id, filename in the_inbox.attachments_since(
         start_history_id=4255018, credentials=delegated_credentials
     ):
         # while True:
 
         # line = stream.readline()
-        print(start_history_id, message_id, message_date, filename, attach_id)
+        print(history_id, message_id, message_from, message_date, message_subject, attachment_id)
         # if len(line) == 0:
         #    break

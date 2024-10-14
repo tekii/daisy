@@ -1,33 +1,41 @@
 import pytest
 
-from google.oauth2 import service_account
 
-from gmail import get_queue_attachments_since
 from ingest import append_events_rows
 
 
-def test_queue():
+@pytest.fixture()
+def the_inbox(test_runner_credentials):
+    # first monkeypatch the credentials, then import the module
+    import inbox
 
+    return inbox
+
+
+def test_queue(the_inbox):
+
+    inbox = the_inbox
     project_id = "daisy-dev01"
-    table_name = "orange.append_events_rows_tests"
+    table_name = "orange.append_events_rows_tests_2"
     table_id = f"{project_id}.{table_name}"
 
-    scopes = "https://www.googleapis.com/auth/gmail.readonly"
-    credentials = service_account.Credentials.from_service_account_file(
-        "../.secrets/mock_credentials.json", scopes=[scopes], subject="queue@margot.tekii.com.ar"
+    delegated_credentials = inbox.get_delegated_credentials_or_die(
+        subject="queue@margot.tekii.com.ar", scopes=["https://www.googleapis.com/auth/gmail.readonly"]
     )
 
-    for stream, start_history_id, message_id, message_date, attach_id, filename in get_queue_attachments_since(
-        4255018, credentials=credentials
+    for stream, history_id, message_id, message_from, message_date, message_subject, attachment_id, filename in inbox.attachments_since(
+        4255018, credentials=delegated_credentials
     ):
 
         append_events_rows(
             stream,
             destination_table=table_id,
             project_id=project_id,
-            start_history_id=start_history_id,
+            history_id=history_id,
             message_id=message_id,
+            message_from=message_from,
             message_date=message_date,
-            attach_id=attach_id,
+            message_subject=message_subject,
+            attachment_id=attachment_id,
             filename=filename,
         )
