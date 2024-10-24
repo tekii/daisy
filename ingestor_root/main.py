@@ -6,10 +6,17 @@ import functions_framework
 from flask import abort
 
 import inbox
+import history
+import attachment
 
-DAISY_SUBJECT_ACCOUNTS = "DAISY_SUBJECT_ACCOUNTS"
+
+_INGESTOR_SUBJECTS_ACCOUNTS = "INGESTOR_SUBJECTS_ACCOUNTS"
 
 _logger = logging.getLogger("INGESTOR")
+
+# not sure if make sense to initialize this in the global space, need to considere concurrency here (one?)
+history.init()
+attachment.init()
 
 
 # Triggered from a message on a Cloud Pub/Sub topic ingestor-queue.
@@ -21,36 +28,48 @@ def the_function(cloud_event):
         abort(500, description=(f"NOT the cloud_event type expected: {str(cloud_event['type'])}"))
 
     # recover valid subjects to be expected
-    subjects = os.getenv(DAISY_SUBJECT_ACCOUNTS)
+    subjects = os.getenv(_INGESTOR_SUBJECTS_ACCOUNTS)
     if subjects is None or len(subjects) == 0:
-        abort(500, description=("DAISY_SUBJECT_ACCOUNTS is not set or its empty."))
+        abort(500, description=(f"{_INGESTOR_SUBJECTS_ACCOUNTS} is not set or its empty."))
     subjects = subjects.lower().split(";")
 
     # decode the PubSub message in the payload
     try:
         data = json.loads(base64.b64decode(cloud_event.data["message"]["data"]).decode("utf-8"))
         subject = data["emailAddress"]
-        historyId = data["historyId"]
+        new_history_id = data["historyId"]
 
-        # whit this call users.history.list
-
-    except (KeyError, json.JSONDecodeError) as e:
+    except (
+        KeyError,
+        json.JSONDecodeError,
+    ) as e:
         abort(500, description=(f"Exception decoding PubSub message: {repr(e)}"))
-
-    _logger.info(f"The subject is {subject}")
 
     # validate subject
     if subject not in subjects:
-        abort(500, description=("'subject' is not in DAISY_SUBJECT_ACCOUNTS."))
+        abort(500, description=(f"'subject' is not in {_INGESTOR_SUBJECTS_ACCOUNTS}."))
 
-    # gets the credentials with inbox access
-    delegated_credentials = inbox.get_delegated_credentials_or_die(
-        subject=subject, scopes=["https://www.googleapis.com/auth/gmail.readonly"]
+    #
+    _logger.info(f"The subject is {subject}")
+
+    # gets the credentials with the queue inbox access, TODO cache this credential for future
+    inbox_credentials = inbox.get_delegated_credentials(
+        subject=subject,
+        scopes=["https://www.googleapis.com/auth/gmail.readonly"],
     )
 
-    # iterate over
-    for stream, history_id, message_id, message_from, message_date, message_subject, attachment_id, filename in inbox.attachments_since(
-        start_history_id=int(historyId), credentials=delegated_credentials
-    ):
-        _logger.info(f"date:{message_date} filename:{filename}")
-        pass
+    # recover the previus historyId
+    last_history_id = history.get_id()
+    if last_history_id is not None:
+        # iterate over
+        for attachment_data in inbox.attachment_ids_since(start_history_id=last_history_id, credentials=inbox_credentials):
+            _, msg_id, _, msg_date, _, _, filename = attachment_data
+            # @new_history_id = history_id
+            # _logger.info(f"date:{message_date} filename:{filename}")
+            print(f"date:{msg_date} filename:{filename}")
+
+            attachment.insert(attachment_data)
+
+    if new_history_id is not None:
+        # save the new history_id
+        history.save_id(new_history_id)

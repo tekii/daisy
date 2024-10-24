@@ -26,6 +26,7 @@ def init(project: Any | None = None, credentials: Credentials | None = None):
     if credentials is None:
         _credentials, _project = google.auth.default()
     else:
+        # untested
         _project = credentials.quota_project_id
         _credentials = credentials
 
