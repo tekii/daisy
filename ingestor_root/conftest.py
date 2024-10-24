@@ -6,6 +6,9 @@ import google.auth
 from google.oauth2 import service_account
 
 
+# TODO https://github.com/GoogleCloudPlatform/functions-framework-python/blob/main/conftest.py
+
+
 def _default(scopes: Any | None = ["https://www.googleapis.com/auth/gmail.readonly", "https://www.googleapis.com/auth/cloud-platform"]):
     """Replaces the current default credentials w/ de test-runner ones."""
     credentials = service_account.Credentials.from_service_account_file(
@@ -16,6 +19,6 @@ def _default(scopes: Any | None = ["https://www.googleapis.com/auth/gmail.readon
 
 
 @pytest.fixture(autouse=False)
-def test_runner_credentials(monkeypatch):
+def test_runner_service_account_credentials(monkeypatch):
     # replace curent default w/ the service account JWT
     monkeypatch.setattr(google.auth, "default", _default)
