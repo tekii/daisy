@@ -1,6 +1,7 @@
-from typing import Any, Tuple, NamedTuple
+# from typing import Any, NamedTuple
 from google.auth.credentials import Credentials
 from google.cloud import bigquery as bq
+from inbox import AttachmentData
 
 __all__ = [
     "init",
@@ -49,19 +50,10 @@ def create_table():
     return table
 
 
-def insert(row: Tuple):
+def insert(row: AttachmentData):
     #
-    assert _client is not None
 
-    (
-        history_id,
-        message_id,
-        message_from,
-        message_date,
-        message_subject,
-        attachment_id,
-        filename,
-    ) = row
+    assert _client is not None
 
     query = f"""INSERT `{_DATASET}.{_TABLE}` (
 history_id, message_id, message_from, message_date, message_subject, attachment_id, filename
@@ -69,15 +61,19 @@ history_id, message_id, message_from, message_date, message_subject, attachment_
 @history_id, @message_id, @message_from, @message_date, @message_subject, @attachment_id, @filename);"""
     job_config = bq.QueryJobConfig(
         query_parameters=[
-            bq.ScalarQueryParameter("history_id", "INTEGER", history_id),
-            bq.ScalarQueryParameter("message_id", "STRING", message_id),
-            bq.ScalarQueryParameter("message_from", "STRING", message_from),
-            bq.ScalarQueryParameter("message_date", "TIMESTAMP", message_date),
-            bq.ScalarQueryParameter("message_subject", "STRING", message_subject),
-            bq.ScalarQueryParameter("attachment_id", "STRING", attachment_id),
-            bq.ScalarQueryParameter("filename", "STRING", filename),
+            bq.ScalarQueryParameter("history_id", "INTEGER", row.history_id),
+            bq.ScalarQueryParameter("message_id", "STRING", row.message_id),
+            bq.ScalarQueryParameter("message_from", "STRING", row.message_from),
+            bq.ScalarQueryParameter("message_date", "TIMESTAMP", row.message_date),
+            bq.ScalarQueryParameter("message_subject", "STRING", row.message_subject),
+            bq.ScalarQueryParameter("attachment_id", "STRING", row.attachment_id),
+            bq.ScalarQueryParameter("filename", "STRING", row.filename),
         ]
     )
-    results = _client.query_and_wait(query, job_config=job_config, project=_project)  # Make an API request.
+    results = _client.query_and_wait(
+        query,
+        job_config=job_config,
+        project=_project,
+    )  # Make an API request.
 
     assert results.num_dml_affected_rows == 1

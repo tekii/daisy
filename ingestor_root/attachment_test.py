@@ -31,23 +31,15 @@ def test_table_creation(the_attachment_module):
 
 def test_insert(the_attachment_module):
 
-    # row = history_id=0,
-    #    project_id=project_id,
-    #    message_id="19233f063eec1719",
-    #    message_from="a@b.c",
-    #    message_date=parsedate_to_datetime("27 Sep 2024 11:43:58 -0300"),
-    #    message_subject="the subject",
-    #    attachment_id="ANGjdJ_deHe7fENfIhMS1GHfH2zZ_Lw66velytd13TEvoFpbUVsT_xdujKFOKcL0l3O0gwmW3ihl3zTn1n1gUcLmzV_UV6Y7JlWNKr42RYCEaH0W60gCj9Ml7h5SWnpjHpjOZCDGEsA4yAc3-RnyUP7YmVzPWvzttqghoFcSa2JIj04lJlu-HJnmYlP1HX-qN014vYR3UiwT7U5Y-su8pDpzRYAibzOyyzzvBD6I0BLJ3opG5Q0O6CCz7wa8gEpSDAzWDfppa_gh8s2Oo0LMkq67wmDNnV-IrSnMCI7HecChpFYvDVTBz_CiJSKQzvPP48QZKoNmUAAv6TTCeCOlcwCViIM7F3QfW7X87s-0xw7mj0i-puswnpj5cRCJH-MQdP_yKPe0_YgJwUY_brww",
-    #    filename="TUTEUR2309240817.TXT"
-
     client: bq.Client = the_attachment_module._client  # type: ignore
     project = the_attachment_module._project
     dataset = the_attachment_module._DATASET
-    table_name = the_attachment_module._TABLE
+    table_name = the_attachment_module._TABLE + "_test"
+    the_attachment_module._TABLE = table_name
 
     the_attachment_module.create_table()
 
-    row = (
+    row = the_attachment_module.AttachmentData(
         0,
         "19233f063eec1719",
         "a@b.c",

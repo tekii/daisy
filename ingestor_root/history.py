@@ -71,6 +71,7 @@ def get_id() -> int | None:
             id = row.id
             return id if id > 0 else None
         case _:
+            # TODO choose better exception
             raise Exception
 
 
@@ -86,4 +87,5 @@ def save_id(history_id: int) -> None:
         project=_project,
     )  # Make an API request.
     if results.num_dml_affected_rows != 1:
+        # TODO choose better exception
         raise Exception

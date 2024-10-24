@@ -1,6 +1,7 @@
 """ """
 
 import logging
+from typing import NamedTuple
 from google.auth import default as default_credentials, iam
 from google.auth.transport import requests
 
@@ -10,18 +11,29 @@ from googleapiclient.discovery import build  # type: ignore[import-untyped]
 from googleapiclient.errors import HttpError  # type: ignore[import-untyped]
 import base64
 from io import BytesIO
+from datetime import datetime
 from email.utils import parsedate_to_datetime
 
 # from base64io import Base64IO
 
-__all__ = ["get_delegated_credentials_or_die", "attachments_since"]
+__all__ = ["get_delegated_credentials", "attachments_since", "attachment_ids_since"]
 
 _logger = logging.getLogger("INGESTOR")
 
 _delegated_credentials = None
 
 
-def get_delegated_credentials_or_die(subject, scopes):
+class AttachmentData(NamedTuple):
+    history_id: int
+    message_id: str
+    message_from: str | None
+    message_date: datetime | None
+    message_subject: str | None
+    attachment_id: str
+    filename: str
+
+
+def get_delegated_credentials(subject, scopes):
 
     global _delegated_credentials
 
@@ -146,7 +158,7 @@ def attachments_since(start_history_id, credentials):
                                             #
                                             yield (
                                                 stream,
-                                                #                                                str(start_history_id),
+                                                # str(start_history_id),
                                                 start_history_id,
                                                 message_id,
                                                 header_from,
@@ -166,6 +178,139 @@ def attachments_since(start_history_id, credentials):
                                     else:
                                         continue
 
+            pageToken = results.get("nextPageToken")
+            if not pageToken:
+                break
+
+    except HttpError as e:
+        logging.error(f"Error retriving history {e.reason}")
+        # if e.resp.status in [403, 404, 500, 503]:
+        #    pass
+        # else:
+        # log the error
+        raise e
+
+
+def insert_attachment_data(
+    history_id,
+    message_id,
+    header_from,
+    header_date,
+    header_subject,
+    attachment_id,
+    filename,
+):
+    pass
+
+
+def attachment_ids_since(start_history_id: int, credentials):
+    # this function has no state of its own, its depend entirely on someone store the start_history_id outside
+    #
+    _logger.info(f"Attempting to retrieve attachment ids since {str(start_history_id)}.")
+
+    client = build("gmail", "v1", credentials=credentials)
+
+    try:
+        # set the history pagination
+        pageToken = None
+        # iterate over pages of this historyId
+        while True:
+            #
+            results = (
+                client.users()
+                .history()
+                .list(
+                    userId="me",
+                    startHistoryId=start_history_id,
+                    labelId="INBOX",
+                    historyTypes=["messageAdded"],
+                    maxResults=10,
+                    pageToken=pageToken,
+                )
+                .execute()
+            )
+            # TODO check this
+            #   list = history.list_next(previous_request=list, previous_response=response)
+            history = results.get("history")
+            if history is not None:
+                for history_record in history:
+                    messages_added = history_record.get("messagesAdded")
+                    # this check only make sense if the watch was incorrectly setup
+                    if messages_added is not None:
+                        for message_added in messages_added:
+                            message_id: str = message_added["message"]["id"]
+                            # recover the actual message
+                            message = client.users().messages().get(userId="me", id=message_id).execute()
+
+                            # cherry pick headers
+                            headers = message["payload"]["headers"]
+                            header_subject = None
+                            header_date = None
+                            header_from = None
+                            for header in headers:
+                                match header:
+                                    case {"name": "Subject", "value": value}:
+                                        header_subject = value
+                                    case {"name": "Date", "value": value}:
+                                        # header_date = value
+                                        header_date = parsedate_to_datetime(value)
+                                    case {"name": "From", "value": value}:
+                                        header_from = value
+                                    case {"name": "Subject", "value": value}:
+                                        header_subject = value
+
+                            # check payload mimeType
+                            for part in message["payload"]["parts"]:
+                                #
+                                try:
+
+                                    filename = part["filename"]
+                                    if filename is not None and len(filename) != 0:
+                                        # body = part.get("body")
+                                        # attachment_id = body.get("attachmentId")
+                                        attachment_id = part["body"]["attachmentId"]
+
+                                        try:
+                                            #
+                                            _logger.info(f"Yielding attachment {filename}.")
+
+                                            yield AttachmentData(
+                                                start_history_id,
+                                                message_id,
+                                                header_from,
+                                                header_date,
+                                                header_subject,
+                                                attachment_id,
+                                                filename,
+                                            )
+
+                                            ##
+                                            # yield (
+                                            #    start_history_id,
+                                            #    message_id,
+                                            #    header_from,
+                                            #    header_date,
+                                            #    header_subject,
+                                            #    attachment_id,
+                                            #    filename,
+                                            # )
+
+                                        except GeneratorExit:
+                                            # TODO handle the exit vs nextPageToken?
+                                            break
+
+                                        finally:
+                                            pass
+                                            # log something
+
+                                    else:
+                                        continue
+
+                                except KeyError:
+                                    # log the error
+                                    continue
+
+            # next page
             pageToken = results.get("nextPageToken")
             if not pageToken:
                 break

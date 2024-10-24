@@ -11,15 +11,31 @@ from functions_framework import create_app
 
 # import pretend
 @pytest.fixture(autouse=True)
-def mock_secrets(ingestor_queue_service_account_credentials, monkeypatch):
+def mock_environment(monkeypatch):
     # the first fixture is ingestor_queue_service_account_credentials before importing main below
-    from main import DAISY_SUBJECT_ACCOUNTS
+    # from main import DAISY_SUBJECT_ACCOUNTS
 
-    monkeypatch.setenv(DAISY_SUBJECT_ACCOUNTS, "PR@legacy.tekii.com.ar;QUEUE@margot.tekii.com.ar;queue@margot.tekii.com.ar")
+    # _env = os.environ.copy()
+    # os.environ["INGESTOR_SUBJECTS_ACCOUNTS"] = "PR@legacy.tekii.com.ar;QUEUE@margot.tekii.com.ar;queue@margot.tekii.com.ar"
+    monkeypatch.setenv("INGESTOR_SUBJECTS_ACCOUNTS", "PR@legacy.tekii.com.ar;QUEUE@margot.tekii.com.ar;queue@margot.tekii.com.ar")
+    try:
+        yield
+    finally:
+        monkeypatch.undo()
+        # os.environ.clear()
+        # os.environ.update(_env)
 
 
 @pytest.fixture
-def client():
+def the_function_(test_runner_service_account_credentials):
+    # ensures default credentials are patched
+    from main import the_function
+
+    return the_function
+
+
+@pytest.fixture
+def the_function_test_client(test_runner_service_account_credentials):
     source = pathlib.Path(__file__).resolve().parent / "main.py"
     target = "the_function"
     _app = create_app(target, source, "cloudevent")
@@ -59,12 +75,12 @@ def mock_ce():
     return CloudEvent(attributes=attributes, data=data)
 
 
-def test_04(capsys, mock_ce):
-    from main import the_function
+def test_04(capsys, the_function_, mock_ce):
+    # from main import the_function
 
     # event = type('cloudevent', (object,), {"attributes": {}, "data": {}})
     event = mock_ce
-    the_function(event)
+    the_function_(event)
     out, err = capsys.readouterr()
     pass
     # assert "pr@legacy.tekii.com.ar\n13617000\n" == out
@@ -138,11 +154,18 @@ def test_09(client, mock_ce):
     assert response.data == b"500 Internal Server Error: Exception decoding PubSub message: KeyError('data')"
 
 
-def test_19(client, mock_ce):
+def test_19(the_function_test_client, mock_ce):
+
     ce = mock_ce
-    ce.data["message"]["data"] = message_encode_helper({"emailAddress": "queue@margot.tekii.com.ar", "historyId": "4255018"})
+    ce.data["message"]["data"] = message_encode_helper(
+        {
+            "emailAddress": "queue@margot.tekii.com.ar",
+            "historyId": "4255018",
+        }
+    )
 
     headers, data = to_structured(ce)
-    response = client.post("/", headers=headers, data=data)
-    assert response.status_code == 500
-    assert response.data == b"500 Internal Server Error: 'subject' is not in DAISY_SUBJECT_ACCOUNTS."
+    response = the_function_test_client.post("/", headers=headers, data=data)
+
+    assert response.status_code == 200
+    # assert response.data == b"500 Internal Server Error: 'subject' is not in DAISY_SUBJECT_ACCOUNTS."

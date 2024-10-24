@@ -63,10 +63,9 @@ def the_function(cloud_event):
     if last_history_id is not None:
         # iterate over
         for attachment_data in inbox.attachment_ids_since(start_history_id=last_history_id, credentials=inbox_credentials):
-            _, msg_id, _, msg_date, _, _, filename = attachment_data
             # @new_history_id = history_id
             # _logger.info(f"date:{message_date} filename:{filename}")
-            print(f"date:{msg_date} filename:{filename}")
+            print(f"date:{attachment_data.message_date} filename:{attachment_data.filename}")
 
             attachment.insert(attachment_data)
 
