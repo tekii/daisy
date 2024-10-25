@@ -191,18 +191,6 @@ def attachments_since(start_history_id, credentials):
         raise e
 
 
-def insert_attachment_data(
-    history_id,
-    message_id,
-    header_from,
-    header_date,
-    header_subject,
-    attachment_id,
-    filename,
-):
-    pass
-
-
 def attachment_ids_since(start_history_id: int, credentials):
     # this function has no state of its own, its depend entirely on someone store the start_history_id outside
     #
