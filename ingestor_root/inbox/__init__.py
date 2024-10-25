@@ -312,6 +312,7 @@ def attachment_ids_since(start_history_id: int, credentials):
 
             # next page
             pageToken = results.get("nextPageToken")
+            # TODO log this --> new_history_id = results.get("historyId")
             if not pageToken:
                 break
 
