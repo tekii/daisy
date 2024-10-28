@@ -22,3 +22,13 @@ def _default(scopes: Any | None = ["https://www.googleapis.com/auth/gmail.readon
 def test_runner_service_account_credentials(monkeypatch):
     # replace curent default w/ the service account JWT
     monkeypatch.setattr(google.auth, "default", _default)
+
+
+@pytest.fixture(autouse=True)
+def test_environment(monkeypatch):
+    monkeypatch.setenv("DATASET", "orange")
+    monkeypatch.setenv("SUBJECTS", "PR@legacy.tekii.com.ar;QUEUE@margot.tekii.com.ar;queue@margot.tekii.com.ar")
+    try:
+        yield
+    finally:
+        monkeypatch.undo()

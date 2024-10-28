@@ -1,6 +1,5 @@
 """ """
 
-import logging
 from typing import NamedTuple
 from google.auth import default as default_credentials, iam
 from google.auth.transport import requests
@@ -13,12 +12,10 @@ import base64
 from io import BytesIO
 from datetime import datetime
 from email.utils import parsedate_to_datetime
+from helpers import configuration as config
 
-# from base64io import Base64IO
+__all__ = ["get_delegated_credentials", "attachments_since", "each_attachment_data_since"]
 
-__all__ = ["get_delegated_credentials", "attachments_since", "attachment_ids_since"]
-
-_logger = logging.getLogger("INGESTOR")
 
 _delegated_credentials = None
 
@@ -33,7 +30,10 @@ class AttachmentData(NamedTuple):
     filename: str
 
 
-def get_delegated_credentials(subject, scopes):
+def get_delegated_credentials(
+    subject,
+    scopes=["https://www.googleapis.com/auth/gmail.readonly"],
+):
 
     global _delegated_credentials
 
@@ -71,6 +71,7 @@ def get_delegated_credentials(subject, scopes):
         #    raise
 
         except Exception:
+            # TODO
             raise
 
     return _delegated_credentials
@@ -78,7 +79,7 @@ def get_delegated_credentials(subject, scopes):
 
 def attachments_since(start_history_id, credentials):
     #
-    _logger.info(f"Attempting to retrieve history since {str(start_history_id)}.")
+    config.logger.info(f"Attempting to retrieve history since {str(start_history_id)}.")
 
     client = build("gmail", "v1", credentials=credentials)
 
@@ -154,7 +155,7 @@ def attachments_since(start_history_id, credentials):
                                         #    with Base64IO(encoded_stream) as stream:
                                         try:
                                             #
-                                            _logger.info(f"Yielding attachment {filename}.")
+                                            config.logger.info(f"Yielding attachment {filename}.")
                                             #
                                             yield (
                                                 stream,
@@ -183,7 +184,8 @@ def attachments_since(start_history_id, credentials):
                 break
 
     except HttpError as e:
-        logging.error(f"Error retriving history {e.reason}")
+        # TODO handle expired history ids
+        config.logger.error(f"Error retriving history {e.reason}")
         # if e.resp.status in [403, 404, 500, 503]:
         #    pass
         # else:
@@ -191,10 +193,10 @@ def attachments_since(start_history_id, credentials):
         raise e
 
 
-def attachment_ids_since(start_history_id: int, credentials):
+def each_attachment_data_since(start_history_id: int, credentials):
     # this function has no state of its own, its depend entirely on someone store the start_history_id outside
     #
-    _logger.info(f"Attempting to retrieve attachment ids since {str(start_history_id)}.")
+    config.logger.info(f"Attempting to retrieve attachment ids since {str(start_history_id)}.")
 
     client = build("gmail", "v1", credentials=credentials)
 
@@ -260,7 +262,7 @@ def attachment_ids_since(start_history_id: int, credentials):
 
                                         try:
                                             #
-                                            _logger.info(f"Yielding attachment {filename}.")
+                                            config.logger.info(f"Yielding attachment {filename}.")
 
                                             yield AttachmentData(
                                                 start_history_id,
@@ -271,17 +273,6 @@ def attachment_ids_since(start_history_id: int, credentials):
                                                 attachment_id,
                                                 filename,
                                             )
-
-                                            ##
-                                            # yield (
-                                            #    start_history_id,
-                                            #    message_id,
-                                            #    header_from,
-                                            #    header_date,
-                                            #    header_subject,
-                                            #    attachment_id,
-                                            #    filename,
-                                            # )
 
                                         except GeneratorExit:
                                             # TODO handle the exit vs nextPageToken?
@@ -305,7 +296,8 @@ def attachment_ids_since(start_history_id: int, credentials):
                 break
 
     except HttpError as e:
-        logging.error(f"Error retriving history {e.reason}")
+        # TODO handle expired history ids
+        config.logger.error(f"Error retriving history {e.reason}")
         # if e.resp.status in [403, 404, 500, 503]:
         #    pass
         # else:

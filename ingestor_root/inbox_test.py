@@ -18,7 +18,7 @@ def test_configure_or_die(the_patched_inbox):
     import inbox
 
     delegated_credentials = inbox.get_delegated_credentials(
-        subject="queue@margot.tekii.com.ar", scopes=["https://www.googleapis.com/auth/gmail.readonly"]
+        subject="queue@margot.tekii.com.ar",
     )
 
     for (
@@ -39,12 +39,15 @@ def test_configure_or_die(the_patched_inbox):
         #    break
 
 
-def test_attachment_ids_since(the_patched_inbox):
+def test_attachment_ids_since(caplog, the_patched_inbox):
     # this import is only for the type hint (i hope)
     import inbox
+    import logging
+
+    caplog.set_level(logging.INFO, logger="INGESTOR")
 
     delegated_credentials = inbox.get_delegated_credentials(
-        subject="queue@margot.tekii.com.ar", scopes=["https://www.googleapis.com/auth/gmail.readonly"]
+        subject="queue@margot.tekii.com.ar",
     )
 
     for (
@@ -55,11 +58,11 @@ def test_attachment_ids_since(the_patched_inbox):
         message_subject,
         attachment_id,
         filename,
-    ) in inbox.attachment_ids_since(start_history_id=4255018, credentials=delegated_credentials):
-        # while True:
-
-        # line = stream.readline()
+    ) in inbox.attachment_ids_since(
+        start_history_id=4255018,
+        credentials=delegated_credentials,
+    ):
         print(history_id, message_id, message_from, message_date, message_subject, attachment_id, filename)
         print()
-        # if len(line) == 0:
-        #    break
+
+    print(caplog.records)

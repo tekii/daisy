@@ -10,20 +10,20 @@ from functions_framework import create_app
 
 
 # import pretend
-@pytest.fixture(autouse=True)
-def mock_environment(monkeypatch):
-    # the first fixture is ingestor_queue_service_account_credentials before importing main below
-    # from main import DAISY_SUBJECT_ACCOUNTS
-
-    # _env = os.environ.copy()
-    # os.environ["INGESTOR_SUBJECTS_ACCOUNTS"] = "PR@legacy.tekii.com.ar;QUEUE@margot.tekii.com.ar;queue@margot.tekii.com.ar"
-    monkeypatch.setenv("INGESTOR_SUBJECTS_ACCOUNTS", "PR@legacy.tekii.com.ar;QUEUE@margot.tekii.com.ar;queue@margot.tekii.com.ar")
-    try:
-        yield
-    finally:
-        monkeypatch.undo()
-        # os.environ.clear()
-        # os.environ.update(_env)
+# @pytest.fixture(autouse=True)
+# def mock_environment(monkeypatch):
+#    # the first fixture is ingestor_queue_service_account_credentials before importing main below
+#    # from main import DAISY_SUBJECT_ACCOUNTS
+#
+#    # _env = os.environ.copy()
+#    # os.environ["INGESTOR_SUBJECTS_ACCOUNTS"] = "PR@legacy.tekii.com.ar;QUEUE@margot.tekii.com.ar;queue@margot.tekii.com.ar"
+#    monkeypatch.setenv("INGESTOR_SUBJECTS", "PR@legacy.tekii.com.ar;QUEUE@margot.tekii.com.ar;queue@margot.tekii.com.ar")
+#    try:
+#        yield
+#    finally:
+#        monkeypatch.undo()
+#        # os.environ.clear()
+#        # os.environ.update(_env)
 
 
 @pytest.fixture
@@ -154,13 +154,16 @@ def test_09(client, mock_ce):
     assert response.data == b"500 Internal Server Error: Exception decoding PubSub message: KeyError('data')"
 
 
-def test_19(the_function_test_client, mock_ce):
+def test_19(caplog, the_function_test_client, mock_ce):
+    import logging
+
+    caplog.set_level(logging.INFO, logger="INGESTOR")
 
     ce = mock_ce
     ce.data["message"]["data"] = message_encode_helper(
         {
             "emailAddress": "queue@margot.tekii.com.ar",
-            "historyId": "4255018",
+            "historyId": "4270302",
         }
     )
 
@@ -169,3 +172,7 @@ def test_19(the_function_test_client, mock_ce):
 
     assert response.status_code == 200
     # assert response.data == b"500 Internal Server Error: 'subject' is not in DAISY_SUBJECT_ACCOUNTS."
+
+    print(caplog.records)
+
+    pass

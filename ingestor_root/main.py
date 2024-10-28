@@ -1,22 +1,14 @@
-import os
+from os import getenv
+from sys import exit
 import base64
 import json
-import logging
 import functions_framework
 from flask import abort
 
+from helpers import configuration as config
 import inbox
 import history
 import attachment
-
-
-_INGESTOR_SUBJECTS_ACCOUNTS = "INGESTOR_SUBJECTS_ACCOUNTS"
-
-_logger = logging.getLogger("INGESTOR")
-
-# not sure if make sense to initialize this in the global space, need to considere concurrency here (one?)
-history.init()
-attachment.init()
 
 
 # Triggered from a message on a Cloud Pub/Sub topic ingestor-queue.
@@ -26,12 +18,6 @@ def the_function(cloud_event):
     # is the event type I expect?
     if cloud_event["type"] != "google.cloud.pubsub.topic.v1.messagePublished":
         abort(500, description=(f"NOT the cloud_event type expected: {str(cloud_event['type'])}"))
-
-    # recover valid subjects to be expected
-    subjects = os.getenv(_INGESTOR_SUBJECTS_ACCOUNTS)
-    if subjects is None or len(subjects) == 0:
-        abort(500, description=(f"{_INGESTOR_SUBJECTS_ACCOUNTS} is not set or its empty."))
-    subjects = subjects.lower().split(";")
 
     # decode the PubSub message in the payload
     try:
@@ -46,24 +32,25 @@ def the_function(cloud_event):
         abort(500, description=(f"Exception decoding PubSub message: {repr(e)}"))
 
     # validate subject
+    subjects = config.SUBJECTS.lower().split(";")
     if subject not in subjects:
-        abort(500, description=(f"'subject' is not in {_INGESTOR_SUBJECTS_ACCOUNTS}."))
-
+        abort(500, description=(f"'{subject}' is not in SUBJECTS."))
     #
-    _logger.info(f"The subject is {subject}")
-
+    config.logger.info(f"The inbox subject is {subject}")
     # gets the credentials with the queue inbox access, TODO cache this credential for future
-    inbox_credentials = inbox.get_delegated_credentials(
-        subject=subject,
-        scopes=["https://www.googleapis.com/auth/gmail.readonly"],
-    )
+    inbox_credentials = inbox.get_delegated_credentials(subject=subject)
 
     # recover the previus historyId
     last_history_id = history.get_id()
     if last_history_id is not None:
         # iterate over
-        for attachment_data in inbox.attachment_ids_since(start_history_id=last_history_id, credentials=inbox_credentials):
-            _logger.info(f"msg_id:{attachment_data.message_id} date:{attachment_data.message_date} filename:{attachment_data.filename}")
+        for attachment_data in inbox.each_attachment_data_since(
+            start_history_id=last_history_id,
+            credentials=inbox_credentials,
+        ):
+            config.logger.info(
+                f"msg_id:{attachment_data.message_id} date:{attachment_data.message_date} filename:{attachment_data.filename}"
+            )
             attachment.insert(attachment_data)
 
     if new_history_id is not None:

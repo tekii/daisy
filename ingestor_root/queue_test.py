@@ -1,36 +1,32 @@
 import pytest
 
 
-from ingest import append_events_rows
+from ingest.event import append_events_rows
 
 
-@pytest.fixture()
-def the_inbox(test_runner_credentials):
-    # first monkeypatch the credentials, then import the module
+def test_ingest(test_runner_service_account_credentials):
     import inbox
 
-    return inbox
-
-
-def test_queue(the_inbox):
-
-    inbox = the_inbox
-    project_id = "daisy-dev01"
     table_name = "orange.append_events_rows_tests_2"
-    table_id = f"{project_id}.{table_name}"
+    table_id = f"{inbox.config.PROJECT}.{table_name}"
 
-    delegated_credentials = inbox.get_delegated_credentials_or_die(
-        subject="queue@margot.tekii.com.ar", scopes=["https://www.googleapis.com/auth/gmail.readonly"]
-    )
+    delegated_credentials = inbox.get_delegated_credentials_or_die(subject="queue@margot.tekii.com.ar")
 
-    for stream, history_id, message_id, message_from, message_date, message_subject, attachment_id, filename in inbox.attachments_since(
-        4255018, credentials=delegated_credentials
-    ):
+    for (
+        stream,
+        history_id,
+        message_id,
+        message_from,
+        message_date,
+        message_subject,
+        attachment_id,
+        filename,
+    ) in inbox.attachments_since(4255018, credentials=delegated_credentials):
 
         append_events_rows(
             stream,
             destination_table=table_id,
-            project_id=project_id,
+            project_id=inbox.config.PROJECT,
             history_id=history_id,
             message_id=message_id,
             message_from=message_from,
