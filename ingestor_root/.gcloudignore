@@ -13,7 +13,7 @@ pytest.ini
 *.sql
 notes.txt
 conftest.py
-adapter/trazamed
 TUTEUR*.TXT
 CANCEL*.TXT
 watch.py
+tool.py

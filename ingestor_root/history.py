@@ -1,10 +1,8 @@
 #
-from typing import Any, Optional
 from helpers import configuration as config
 from google.cloud.bigquery import QueryJobConfig, ScalarQueryParameter
 
 __all__ = [
-    "init",
     "create_table",
     "get_last_id",
     "save_new_id",
