@@ -3,7 +3,7 @@ import pytest
 from email.utils import parsedate_to_datetime
 from io import StringIO
 from google.cloud import bigquery as bq
-from . import append_events_rows
+from event import append_events_rows
 
 project_id = "daisy-dev01"
 table_name = "orange.append_events_rows_tests_2"
@@ -22,6 +22,7 @@ def mock_attachment_buffer():
 
 @pytest.fixture()
 def test_stuff():
+    # run w/ the local credentials
     client = bq.Client(project=project_id)
     table_id = f"{project_id}.{table_name}"
     schema = [
@@ -49,6 +50,12 @@ def test_stuff():
     ]
     table = bq.Table(table_id, schema=schema)
     table = client.create_table(table, exists_ok=True)
+    # https://cloud.google.com/bigquery/docs/creating-partitioned-tables#bq_1
+    table.time_partitioning = bq.TimePartitioning(
+        type_=bq.TimePartitioningType.MONTH,
+        field="message_date",  # name of column to use for partitioning
+        # expiration_ms=1000 * 60 * 60 * 24 * 90,
+    )  # 90 days
 
     yield (client, project_id, table_name)
 
