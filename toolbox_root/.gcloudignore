@@ -1,0 +1,14 @@
+.gcloudignore
+.gitignore
+
+project.toml
+
+*.sh
+
+#*_test.*
+#conftest.py
+#tests
+
+notes.txt
+
+#!include:.gitignore

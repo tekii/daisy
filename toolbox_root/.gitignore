@@ -1,0 +1,16 @@
+.vscode
+.attic
+
+*.pyc
+*.pyo
+*.pyd
+__pycache__
+.pytest_cache
+.mypy_cache
+venv*
+build
+dist
+*.egg-info
+
+.secrets
+secrets.json

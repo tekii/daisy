@@ -1,0 +1,19 @@
+[project]
+name = "tekii-margot-toolbox"
+description = "TEKii - MARGOT common code"
+readme = "README"
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Private :: Do Not Upload",
+]
+requires-python = ">= 3.0.0"
+dynamic = ["version"]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.dynamic]
+version = {attr = "tekii_margot_toolbox.__version__"}

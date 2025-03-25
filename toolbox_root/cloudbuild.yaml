@@ -1,0 +1,70 @@
+
+steps:
+- name: ${_PYIMAGE}
+  entrypoint: 'python'
+  args: 
+  - '-m'
+  - 'pip'
+  - 'install'
+  - '--progress-bar'
+  - 'off'
+  - '--root-user-action'
+  - 'ignore'
+  - '--no-warn-script-location'
+  - '--user' # this prevent losing the upgrade between steps
+  - '--upgrade'
+  - 'pip'
+#  - 'pkginfo'
+
+# install the necesaries dep to run the test before install the build deps ¿best practice?
+#- name: 'python'
+#  entrypoint: 'python'
+#  args: ['-m', 'pytest', '--junitxml=${SHORT_SHA}_test_log.xml']
+
+# install build and twine 
+- name: ${_PYIMAGE}
+  entrypoint: pip
+  args: 
+  - "install"
+  - '--progress-bar'
+  - 'off'
+  - '--root-user-action'
+  - 'ignore'
+  - '--no-warn-script-location'
+  - '--user' # this prevent losing the upgrade between steps
+  - '-r'
+  - 'requirements_build.txt'
+
+# build the package
+- name: ${_PYIMAGE}
+  entrypoint: python
+  args:
+  - '-m'
+  - 'build'
+
+# alternative method to upload the package because artifacts>pythonPackages complains about metadata
+- name: ${_PYIMAGE}
+  entrypoint: python
+  args:
+  - '-m'
+  - 'twine'
+  - 'upload'
+  - '--verbose'
+  - '--skip-existing' # do not fail if is already deploy... mmmm....
+  - '--disable-progress-bar'
+  - '--repository-url'
+  - 'https://${_LOCATION}-python.pkg.dev/$PROJECT_ID/${_REPOSITORY}/'
+  - 'dist/*.whl'
+
+# fails because soma allegedly lost metadata
+#artifacts:
+#  pythonPackages:
+#  - repository: 'https://${_LOCATION}-python.pkg.dev/$PROJECT_ID/${_REPOSITORY}'
+#    paths: ['dist/*.whl'] #replace the wildcard w/ the actual filename
+
+substitutions:
+  _PYIMAGE: "python:3.12"
+
+#options:
+#  substitution_option: 'ALLOW_LOOSE'
+
