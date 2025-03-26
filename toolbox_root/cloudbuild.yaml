@@ -54,7 +54,7 @@ steps:
   - '--disable-progress-bar'
   - '--repository-url'
   - 'https://${_LOCATION}-python.pkg.dev/$PROJECT_ID/${_REPOSITORY}/'
-  - 'dist/*.whl'
+  - 'dist/*'
 
 # fails because soma allegedly lost metadata
 #artifacts:

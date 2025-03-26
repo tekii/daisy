@@ -12,8 +12,14 @@ requires-python = ">= 3.0.0"
 dynamic = ["version"]
 
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools>=78", "setuptools-git-versioning>=2.0,<3",]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools.dynamic]
-version = {attr = "tekii_margot_toolbox.__version__"}
+[tool.setuptools-git-versioning]
+enabled = true
+starting_version = "0"
+tag_filter =    "toolbox/(?P<tag>\\d+)"
+tag_formatter = "toolbox/(?P<tag>\\d+)"
+template       = "{tag}.post{ccount}"
+dev_template   = "{tag}.post{ccount}+{sha}+dev"
+dirty_template = "{tag}.post{ccount}+{sha}+dirty"
