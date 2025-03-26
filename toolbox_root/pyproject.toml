@@ -17,7 +17,6 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools-git-versioning]
 enabled = true
-starting_version = "0"
 tag_filter =    "toolbox/(?P<tag>\\d+)"
 tag_formatter = "toolbox/(?P<tag>\\d+)"
 template       = "{tag}.post{ccount}"
