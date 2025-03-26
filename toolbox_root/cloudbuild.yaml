@@ -44,7 +44,7 @@ steps:
   args:
   - '-m'
   - 'build'
-  dir: ${_BUILD_ROOT}
+  - ${_BUILD_ROOT}
 
 # alternative method to upload the package because artifacts>pythonPackages complains about metadata
 - name: ${_PYIMAGE}
@@ -57,7 +57,7 @@ steps:
   - '--skip-existing' # do not fail if is already deploy... mmmm....
   - '--disable-progress-bar'
   - '--repository-url'
-  - 'https://${_LOCATION}-python.pkg.dev/$PROJECT_ID/${_REPOSITORY}/'
+  - 'https://$LOCATION-python.pkg.dev/$PROJECT_ID/margot/'
   - 'dist/*'
   dir: ${_BUILD_ROOT}
 
