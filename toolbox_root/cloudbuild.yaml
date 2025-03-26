@@ -15,6 +15,7 @@ steps:
   - '--upgrade'
   - 'pip'
 #  - 'pkginfo'
+  dir: ${_BUILD_ROOT}
 
 # install the necesaries dep to run the test before install the build deps ¿best practice?
 #- name: 'python'
@@ -34,6 +35,8 @@ steps:
   - '--user' # this prevent losing the upgrade between steps
   - '-r'
   - 'requirements_build.txt'
+  dir: ${_BUILD_ROOT}
+
 
 # build the package
 - name: ${_PYIMAGE}
@@ -41,6 +44,7 @@ steps:
   args:
   - '-m'
   - 'build'
+  dir: ${_BUILD_ROOT}
 
 # alternative method to upload the package because artifacts>pythonPackages complains about metadata
 - name: ${_PYIMAGE}
@@ -55,6 +59,7 @@ steps:
   - '--repository-url'
   - 'https://${_LOCATION}-python.pkg.dev/$PROJECT_ID/${_REPOSITORY}/'
   - 'dist/*'
+  dir: ${_BUILD_ROOT}
 
 # fails because soma allegedly lost metadata
 #artifacts:
@@ -64,6 +69,7 @@ steps:
 
 substitutions:
   _PYIMAGE: "python:3.12"
+  _BUILD_ROOT: toolbox_root
 
 #options:
 #  substitution_option: 'ALLOW_LOOSE'
