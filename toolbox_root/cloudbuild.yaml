@@ -37,14 +37,21 @@ steps:
   - 'requirements_build.txt'
   dir: ${_BUILD_ROOT}
 
-
+# generate VERSION file
+- name: ${_PYIMAGE}
+  entrypoint: python
+  args: 
+  - "build_version.py"
+  - "${SHORT_SHA}"
+  dir: ${_BUILD_ROOT}
+  
 # build the package
 - name: ${_PYIMAGE}
   entrypoint: python
   args:
   - '-m'
   - 'build'
-  - ${_BUILD_ROOT}
+  dir: ${_BUILD_ROOT}
 
 # alternative method to upload the package because artifacts>pythonPackages complains about metadata
 - name: ${_PYIMAGE}
