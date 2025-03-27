@@ -9,12 +9,13 @@ classifiers = [
     "Private :: Do Not Upload",
 ]
 requires-python = ">= 3.0.0"
-dynamic = ["version"]
-#dependencies = []
+dynamic = ["version","dependencies"]
 
 [build-system]
-requires = ["setuptools>=78"]
+# artifact support up to 2.2 metadata version
+requires = ["setuptools>=76,<77.0.1"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.dynamic]
 version = {file = "VERSION"}
+dependencies = {file = "requirements.txt"}
