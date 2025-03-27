@@ -10,15 +10,11 @@ classifiers = [
 ]
 requires-python = ">= 3.0.0"
 dynamic = ["version"]
+#dependencies = []
 
 [build-system]
-requires = ["setuptools>=78", "setuptools-git-versioning>=2.0,<3",]
+requires = ["setuptools>=78"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools-git-versioning]
-enabled = true
-tag_filter =    "toolbox/(?P<tag>\\d+)"
-tag_formatter = "toolbox/(?P<tag>\\d+)"
-template       = "{tag}.post{ccount}"
-dev_template   = "{tag}.post{ccount}+{sha}+dev"
-dirty_template = "{tag}.post{ccount}+{sha}+dirty"
+[tool.setuptools.dynamic]
+version = {file = "VERSION"}
