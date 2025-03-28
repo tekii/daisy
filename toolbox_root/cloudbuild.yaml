@@ -57,6 +57,7 @@ steps:
   - '-m'
   - 'pytest'
   - '--no-cov'
+  dir: ${_BUILD_ROOT}
 # - '--junitxml'
 # - '${SHORT_SHA}_test_log.xml'
 
