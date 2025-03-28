@@ -1,4 +1,4 @@
-
+#
 steps:
 - name: ${_PYIMAGE}
   entrypoint: 'python'
@@ -17,34 +17,14 @@ steps:
   - 'build'
   dir: ${_BUILD_ROOT}
 
-# install the necesaries dep to run the test before install the build deps ¿best practice?
-#- name: 'python'
-#  entrypoint: 'python'
-#  args: ['-m', 'pytest', '--junitxml=${SHORT_SHA}_test_log.xml']
-
-## install build and twine 
-#- name: ${_PYIMAGE}
-#  entrypoint: pip
-#  args: 
-#  - "install"
-#  - '--progress-bar'
-#  - 'off'
-#  - '--root-user-action'
-#  - 'ignore'
-#  - '--no-warn-script-location'
-#  - '--user' # this prevent losing the upgrade between steps
-#  - '-r'
-#  - 'requirements_build.txt'
-#  dir: ${_BUILD_ROOT}
-
-# generate VERSION file
+# generate a unique version and save to the VERSION file
 - name: ${_PYIMAGE}
   entrypoint: python
   args: 
   - 'generate_build_version.py'
   - '${SHORT_SHA}'
   dir: ${_BUILD_ROOT}
-  
+
 # build the package
 - name: ${_PYIMAGE}
   entrypoint: python
@@ -53,6 +33,34 @@ steps:
   - 'build'
   dir: ${_BUILD_ROOT}
 
+# install tests requeriments
+- name: ${_PYIMAGE}
+  entrypoint: 'python'
+  args: 
+  - '-m'
+  - 'pip'
+  - 'install'
+  - '--progress-bar'
+  - 'off'
+  - '--root-user-action'
+  - 'ignore'
+  - '--no-warn-script-location'
+  - '--user' 
+  - '-r'
+  - 'requirements_test.txt'
+  dir: ${_BUILD_ROOT}
+
+# run the tests
+- name: ${_PYIMAGE}
+  entrypoint: 'python'
+  args: 
+  - '-m'
+  - 'pytest'
+  - '--no-cov'
+# - '--junitxml'
+# - '${SHORT_SHA}_test_log.xml'
+
+# if tests pass publish the packages
 artifacts:
   # support python metadata version up to 2.2 (setuptools<77.0.1)
   pythonPackages:

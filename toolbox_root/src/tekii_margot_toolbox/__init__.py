@@ -1,3 +1,5 @@
-"""TEKii MARGOT ToolBox"""
+"""ToolBox module for MARGOT"""
 
-from __future__ import annotations
+__all__ = [
+    "gs1",
+]
