@@ -65,7 +65,7 @@ steps:
 artifacts:
   # support python metadata version up to 2.2 (setuptools<77.0.1)
   pythonPackages:
-  - repository: 'https://$LOCATION-python.pkg.dev/$PROJECT_ID/margot'
+  - repository: 'https://$LOCATION-python.pkg.dev/$PROJECT_ID/${_ARTIFACT_REPO}'
     paths: ['${_BUILD_ROOT}/dist/*']
 
 substitutions:
