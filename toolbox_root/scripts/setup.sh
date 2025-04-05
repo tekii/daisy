@@ -26,8 +26,7 @@ sleep $SLEEP
 
 # grants to the account the role to allow write the package into the repo 
 gcloud \
-    artifacts repositories add-iam-policy-binding $PYTHON_REPOSITORY_NAME \
-    --project=$PROJECT_ID --location=$LOCATION \
+    artifacts repositories add-iam-policy-binding $PYTHON_REPO_FULL_NAME \
     --member="serviceAccount:${SERVICE_ACCOUNT}" \
     --role=roles/artifactregistry.writer \
     --condition=None
@@ -42,8 +41,9 @@ gcloud \
     --name="toolbox-packages${ATTEMPT_SUFFIX}" \
     --service-account="projects/${PROJECT_ID}/serviceAccounts/${SERVICE_ACCOUNT}" \
     --repo-owner="tekii" \
-    --repo-name=$PYTHON_REPOSITORY_NAME \
+    --repo-name="daisy" \
     --branch-pattern="^toolbox$" \
     --included-files="toolbox_root/**" \
     --build-config="toolbox_root/cloudbuild.yaml" \
-    --substitutions="_ARTIFACT_REPO=${PYTHON_REPOSITORY_NAME}"
+    --substitutions="_PYTHON_REPO_URL=${PYTHON_REPO_URL}"
+#   --substitutions="_ARTIFACT_REPO=${PYTHON_REPO_FULL_NAME}"

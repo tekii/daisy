@@ -9,12 +9,17 @@ else echo $SERVICE_ACCOUNT_NAME ${#SERVICE_ACCOUNT_NAME}
 fi
 SERVICE_ACCOUNT="${SERVICE_ACCOUNT_NAME}@${PROJECT_ID}.iam.gserviceaccount.com"
 # repos
-PYTHON_REPOSITORY_NAME=daisy
-IMAGES_REPOSITORY_NAME=images
+PYTHON_REPO_NAME="margot"
+PYTHON_REPO_FULL_NAME="projects/${PROJECT_ID}/locations/${LOCATION}/repositories/${PYTHON_REPO_NAME}"
+PYTHON_REPO_URL=$(gcloud artifacts repositories describe $PYTHON_REPO_FULL_NAME --format="value(registryUri)")
+DOCKER_REPO_FULL_NAME="projects/${PROJECT_ID}/locations/${LOCATION}/repositories/images"
+DOCKER_REPO_URL=$(gcloud artifacts repositories describe $DOCKER_REPO_FULL_NAME --format="value(registryUri)")
 
 echo $PROJECT_ID
 echo $PROJECT_NUMBER
 echo $LOCATION
 echo $SERVICE_ACCOUNT
-echo $PYTHON_REPOSITORY_NAME
-echo $IMAGES_REPOSITORY_NAME
+echo $PYTHON_REPO_FULL_NAME
+echo $PYTHON_REPO_URL
+echo $DOCKER_REPO_FULL_NAME
+echo $DOCKER_REPO_URL
