@@ -1,44 +1,49 @@
 #!/usr/bin/env bash
+set -e
 
 # common stuff
-MODULE=toolbox
-ACCOUNT_NUMBER=19
+MODULE_NAME=toolbox
+ATTEMPT_SUFFIX="-24"
+SLEEP=3
 
 source ../../scripts/common.sh
 
-SERVICE_ACCOUNT_NAME=${MODULE}-${PROJECT_NUMBER}-${ACCOUNT_NUMBER}
-
-if [ ${#SERVICE_ACCOUNT_NAME} -ge 30 ]; then echo "SERVICE_ACCOUNT_NAME too long"; exit 1 
-else echo $SERVICE_ACCOUNT_NAME ${#SERVICE_ACCOUNT_NAME}
-fi
-
-SERVICE_ACCOUNT="${SERVICE_ACCOUNT_NAME}@${PROJECT_ID}.iam.gserviceaccount.com"
-
-echo $PROJECT_ID
-echo $PROJECT_NUMBER
-echo $LOCATION
-echo $SERVICE_ACCOUNT
-
-# create the builder
-gcloud iam service-accounts create ${SERVICE_ACCOUNT_NAME} \
+# create the account to run the build 
+gcloud \
+    iam service-accounts create ${SERVICE_ACCOUNT_NAME} \
     --project=$PROJECT_ID \
-    --display-name="BT ${MODULE}" \
-    --description="Builder / tester for ${MODULE}"
-sleep 10
+    --display-name="Builder ${ATTEMPT_SUFFIX} ${MODULE_NAME}" \
+    --description="Builder / tester ${ATTEMPT_SUFFIX} for ${MODULE_NAME} "
+sleep $SLEEP
 
-# gcloud <resourceType> add-iam-policy-binding <resourceName> 
-# --member=<accountToGrantOnTheResource> --role=<roleToGrantOnTheResource>
-
-# grants the role to allow write logs to Cloud Logging (used by cloudbuild.yaml)
-gcloud projects add-iam-policy-binding $PROJECT_ID \
+# grants to the account the role to allow write logs to Cloud Logging (used by cloudbuild.yaml)
+gcloud \
+    projects add-iam-policy-binding $PROJECT_ID \
     --member="serviceAccount:${SERVICE_ACCOUNT}" \
     --role=roles/logging.logWriter \
     --condition=None
-sleep 10
+sleep $SLEEP
 
-# grants the role to allow write the package into the repo 
-# https://cloud.google.com/artifact-registry/docs/access-control#roles
-gcloud projects add-iam-policy-binding $PROJECT_ID \
+# grants to the account the role to allow write the package into the repo 
+gcloud \
+    artifacts repositories add-iam-policy-binding $PYTHON_REPOSITORY_NAME \
+    --project=$PROJECT_ID --location=$LOCATION \
     --member="serviceAccount:${SERVICE_ACCOUNT}" \
     --role=roles/artifactregistry.writer \
     --condition=None
+sleep $SLEEP
+
+# create the trigger, this needs both, the python repository (daisy) and the github 1st gen repository (tekii/daisy)
+# to exist.
+gcloud \
+    builds triggers create github \
+    --project=$PROJECT_ID \
+    --region=$LOCATION \
+    --name="toolbox-packages${ATTEMPT_SUFFIX}" \
+    --service-account="projects/${PROJECT_ID}/serviceAccounts/${SERVICE_ACCOUNT}" \
+    --repo-owner="tekii" \
+    --repo-name=$PYTHON_REPOSITORY_NAME \
+    --branch-pattern="^toolbox$" \
+    --included-files="toolbox_root/**" \
+    --build-config="toolbox_root/cloudbuild.yaml" \
+    --substitutions="_ARTIFACT_REPO=${PYTHON_REPOSITORY_NAME}"
