@@ -43,5 +43,6 @@ gcloud \
     --repo-name="daisy" \
     --branch-pattern="^toolbox$" \
     --included-files="toolbox_root/**" \
+    --ignored-files="toolbox_root/scripts/**" \
     --build-config="toolbox_root/cloudbuild.yaml" \
     --substitutions="_PYTHON_REPO_URL=${PYTHON_REPO_URL}"

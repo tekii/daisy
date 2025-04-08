@@ -17,9 +17,9 @@ BUILD_ACCOUNT="projects/${PROJECT_ID}/serviceAccounts/${BUILD_ACCOUNT_EMAIL}"
 # repos
 PYTHON_REPO_NAME="margot"
 PYTHON_REPO="projects/${PROJECT_ID}/locations/${LOCATION}/repositories/${PYTHON_REPO_NAME}"
-PYTHON_REPO_URL=$(gcloud artifacts repositories describe $PYTHON_REPO_FULL_NAME --format="value(registryUri)")
+PYTHON_REPO_URL=$(gcloud artifacts repositories describe $PYTHON_REPO --format="value(registryUri)")
 DOCKER_REPO="projects/${PROJECT_ID}/locations/${LOCATION}/repositories/images"
-DOCKER_REPO_URL=$(gcloud artifacts repositories describe $DOCKER_REPO_FULL_NAME --format="value(registryUri)")
+DOCKER_REPO_URL=$(gcloud artifacts repositories describe $DOCKER_REPO --format="value(registryUri)")
 
 echo $PROJECT_ID
 echo $PROJECT_NUMBER
