@@ -3,31 +3,30 @@ set -e
 
 # common stuff
 MODULE_NAME=toolbox
-ATTEMPT_SUFFIX="-24"
 SLEEP=3
 
 source ../../scripts/common.sh
 
 # create the account to run the build 
 gcloud \
-    iam service-accounts create ${DEPLOY_ACCOUNT_NAME} \
+    iam service-accounts create ${BUILD_ACCOUNT_NAME} \
     --project=$PROJECT_ID \
-    --display-name="Builder ${ATTEMPT_SUFFIX} ${MODULE_NAME}" \
-    --description="Builder / tester ${ATTEMPT_SUFFIX} for ${MODULE_NAME} "
+    --display-name="${MODULE_NAME} build account ${ATTEMPT}" \
+    --description="Build account ${ATTEMPT} for ${MODULE_NAME}"
 sleep $SLEEP
 
 # grants to the account the role to allow write logs to Cloud Logging (used by cloudbuild.yaml)
 gcloud \
     projects add-iam-policy-binding $PROJECT_ID \
-    --member="serviceAccount:${DEPLOY_ACCOUNT}" \
+    --member="serviceAccount:${BUILD_ACCOUNT_EMAIL}" \
     --role=roles/logging.logWriter \
     --condition=None
 sleep $SLEEP
 
 # grants to the account the role to allow write the package into the repo 
 gcloud \
-    artifacts repositories add-iam-policy-binding $PYTHON_REPO_FULL_NAME \
-    --member="serviceAccount:${DEPLOY_ACCOUNT}" \
+    artifacts repositories add-iam-policy-binding $PYTHON_REPO \
+    --member="serviceAccount:${BUILD_ACCOUNT_EMAIL}" \
     --role=roles/artifactregistry.writer \
     --condition=None
 sleep $SLEEP
@@ -38,8 +37,8 @@ gcloud \
     builds triggers create github \
     --project=$PROJECT_ID \
     --region=$LOCATION \
-    --name="toolbox-packages${ATTEMPT_SUFFIX}" \
-    --service-account="projects/${PROJECT_ID}/serviceAccounts/${DEPLOY_ACCOUNT}" \
+    --name="toolbox-trigger${ATTEMPT_SUFFIX}" \
+    --service-account="${BUILD_ACCOUNT}" \
     --repo-owner="tekii" \
     --repo-name="daisy" \
     --branch-pattern="^toolbox$" \
