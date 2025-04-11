@@ -23,6 +23,8 @@ steps:
   args: 
   - '-m'
   - 'tekii_margot_toolbox.build_version'
+  - '1'
+  - '2025-04-11T06:22:00Z'
   - '${SHORT_SHA}'
   dir: ${_BUILD_ROOT}
   env: 
