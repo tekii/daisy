@@ -27,3 +27,9 @@ testpaths = [ "tests", ]
 
 [tool.coverage.run]
 omit = ["generate_build_version.py"]
+
+[tool.isort]
+profile = "black"
+src_paths = "src"
+skip = [".gitignore", ".dockerignore"]
+extend_skip_glob = ["tests/*"]
