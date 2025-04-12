@@ -1,7 +1,8 @@
 import pytest
 import datetime
 
-from tekii_margot_toolbox.build_version import generate
+
+from tekii_margot.build_version import generate  # type: ignore
 
 major_valid_since = {
     0: datetime.datetime(

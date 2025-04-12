@@ -1,6 +1,12 @@
+"""VERSION generator"""
+
 from datetime import datetime, timezone
 
 from packaging import version
+
+__all__ = [
+    "generate",
+]
 
 
 def generate(major: int, valid_since: datetime, short_sha: str | None = None, version_now: datetime | None = None):

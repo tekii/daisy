@@ -19,17 +19,29 @@ build-backend = "setuptools.build_meta"
 version = {file = "VERSION"}
 dependencies = {file = "requirements.txt"}
 
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["tekii_margot.*"]  
+# exclude = ["additional*"]
+namespaces = true
+
 [tool.pytest.ini_options]
 minversion = "7.0"
 addopts = [ "--cov=src", ]
 pythonpath = "src"
 testpaths = [ "tests", ]
+consider_namespace_packages = true
 
 [tool.coverage.run]
-omit = ["generate_build_version.py"]
+omit = ["tests/**"]
 
 [tool.isort]
 profile = "black"
 src_paths = "src"
 skip = [".gitignore", ".dockerignore"]
 extend_skip_glob = ["tests/*"]
+#namespace_packages = ["tekii_margot"]
+
+[[tool.mypy.overrides]]
+module = ["tekii_margot.toolbox.*"]
+ignore_missing_imports = true
