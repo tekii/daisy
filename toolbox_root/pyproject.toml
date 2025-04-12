@@ -1,6 +1,6 @@
 [project]
-name = "tekii-margot-toolbox"
-description = "TEKii - MARGOT common code"
+name = "tekii-margot-bundle"
+description = "TEKii - MARGOT common code and tools"
 readme = "README"
 classifiers = [
     "Development Status :: 1 - Planning",
@@ -19,11 +19,29 @@ build-backend = "setuptools.build_meta"
 version = {file = "VERSION"}
 dependencies = {file = "requirements.txt"}
 
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["tekii.margot.*"]  
+# exclude = ["additional*"]
+namespaces = true
+
 [tool.pytest.ini_options]
 minversion = "7.0"
 addopts = [ "--cov=src", ]
 pythonpath = "src"
 testpaths = [ "tests", ]
+consider_namespace_packages = true
 
 [tool.coverage.run]
-omit = ["generate_build_version.py"]
+omit = ["tests/**"]
+
+[tool.isort]
+profile = "black"
+src_paths = "src"
+skip = [".gitignore", ".dockerignore"]
+extend_skip_glob = ["tests/*"]
+#namespace_packages = ["tekii.margot"]
+
+#[[tool.mypy.overrides]]
+#module = ["tekii.margot.toolbox.*"]
+#ignore_missing_imports = true

@@ -21,9 +21,14 @@ steps:
 - name: ${_PYIMAGE}
   entrypoint: python
   args: 
-  - 'generate_build_version.py'
+  - '-m'
+  - 'tekii.margot.build_version'
+  - '1'
+  - '2025-04-11T06:22:00Z'
   - '${SHORT_SHA}'
   dir: ${_BUILD_ROOT}
+  env: 
+  - 'PYTHONPATH=src'
 
 # build the package
 - name: ${_PYIMAGE}
