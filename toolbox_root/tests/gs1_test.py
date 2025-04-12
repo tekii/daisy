@@ -1,5 +1,5 @@
 import pytest
-from tekii_margot.toolbox import gs1  # type: ignore
+from tekii.margot.toolbox import gs1  # type: ignore
 
 
 def test_01():
