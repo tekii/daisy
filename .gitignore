@@ -3,6 +3,8 @@
 .secrets/
 secret.json
 .attic/
+VERSION
+ATTEMPT
 ### CAUTION CAUTION CAUTION ###
 #
 __pycache__/
