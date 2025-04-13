@@ -1,0 +1,24 @@
+[project]
+name = "orange"
+description = "TRAZAMED API - BigQuery remote function"
+requires-python = ">= 3.0.0"
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = [ "--cov=src", ]
+pythonpath = "src"
+testpaths = [ "tests", ]
+#markers = [ 
+#    "bad_request: marks tests as slow (deselect with '-m "not slow"')",
+#    "agent_credentials",
+#    "mock_data", 
+#    ]
+
+[tool.coverage.run]
+omit = ["tests/**"]
+
+[tool.isort]
+profile = "black"
+src_paths = "src"
+skip = [".gitignore", ".dockerignore"]
+extend_skip_glob = ["tests/*"]
