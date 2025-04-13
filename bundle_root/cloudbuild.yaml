@@ -75,7 +75,7 @@ artifacts:
 
 substitutions:
   _PYIMAGE: 'python:3.12'
-  _BUILD_ROOT: toolbox_root
+  _BUILD_ROOT: bundle_root
 
 options:
   logging: CLOUD_LOGGING_ONLY

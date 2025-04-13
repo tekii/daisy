@@ -43,5 +43,5 @@ extend_skip_glob = ["tests/*"]
 #namespace_packages = ["tekii.margot"]
 
 #[[tool.mypy.overrides]]
-#module = ["tekii.margot.toolbox.*"]
+#module = ["tekii.margot.bundle.*"]
 #ignore_missing_imports = true

@@ -2,7 +2,7 @@
 set -e
 
 # common stuff
-PACKAGE_NAME=toolbox
+PACKAGE_NAME=bundle
 SLEEP=3
 
 source ../../scripts/common.sh
@@ -37,12 +37,12 @@ gcloud \
     builds triggers create github \
     --project=$PROJECT_ID \
     --region=$LOCATION \
-    --name="toolbox-trigger${ATTEMPT_SUFFIX}" \
+    --name="bundle-trigger${ATTEMPT_SUFFIX}" \
     --service-account="${BUILD_ACCOUNT}" \
     --repo-owner="tekii" \
     --repo-name="daisy" \
-    --branch-pattern="^toolbox$" \
-    --included-files="toolbox_root/**" \
-    --ignored-files="toolbox_root/scripts/**" \
-    --build-config="toolbox_root/cloudbuild.yaml" \
+    --branch-pattern="^bundle$" \
+    --included-files="bundle_root/**" \
+    --ignored-files="bundle_root/scripts/**" \
+    --build-config="bundle_root/cloudbuild.yaml" \
     --substitutions="_PYTHON_REPO_URL=${PYTHON_REPO_URL}"
