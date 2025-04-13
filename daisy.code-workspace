@@ -1,0 +1,156 @@
+{
+	"folders": [
+		{
+			"name": "ROOT",
+			"path": "."
+		},
+		{
+			"name": "BOT",
+			"path": "bot_root"
+		},
+		{
+			"name": "INGESTOR",
+			"path": "ingestor_root"
+		},
+		{
+			"name": "ORANGE",
+			"path": "orange_root"
+		},
+		{
+			"name": "OUZO",
+			"path": "ouzo_root"
+		},
+		{
+			"name": "NOTIFY",
+			"path": "notify_root"
+		},
+		{
+			"name": "EXPAND",
+			"path": "expand_root"
+		},
+		{
+			"name": "BUNDLE",
+			"path": "bundle_root"
+		},
+		{
+			"name": "SCRIPTS",
+			"path": "scripts"
+		},
+		{
+			"name": "TRAZAMED",
+			"path": "trazamed_root"
+		}
+	],
+	"settings": {
+		"[json]": {
+			"editor.defaultFormatter": "vscode.json-language-features"
+		},
+		"[python]": {
+			"editor.defaultFormatter": "ms-python.black-formatter",
+			"editor.formatOnSave": true
+		},
+		"black-formatter.args": [
+			"--preview",
+			"--line-length",
+			"120",
+		],
+		"cloudcode.apigee.gemini.enable": false,
+		"cloudcode.autoDependencies": "off",
+		"cloudcode.duetAI.codeGenerationInterface": "ghostText",
+		"cloudcode.duetAI.inlineSuggestions.enableAuto": false,
+		"cloudcode.duetAI.languages": [
+			"python",
+			"sql"
+		],
+		"cloudcode.enable1stPartyAuth": false,
+		"cloudcode.enableGkeAutopilotSupport": false,
+		"cloudcode.enableMinikubeGcpAuthPlugin": true,
+		"cloudcode.enableTelemetry": false,
+		"cloudcode.project": "daisy-dev01",
+		"cloudcode.updateAdcOnLogin": false,
+		"editor.formatOnSave": false,
+		"editor.maxTokenizationLineLength": 200000,
+		"explorer.excludeGitIgnore": false,
+		"files.associations": {
+			".dockerignore": "ignore",
+			".gcloudignore": "ignore",
+			"requirements*.txt": "pip-requirements"
+		},
+		"files.exclude": {
+			"**/__*cache__": true,
+			"**/.*_cache": true,
+			"**/venv": true
+		},
+		"flake8.args": [
+			"--ignore=E402,F841,W503",
+			"--max-line-length=120"
+		],
+		"geminicodeassist.enable": false,
+		"geminicodeassist.enableTelemetry": false,
+		"geminicodeassist.inlineSuggestions.enableAuto": true,
+		"git.closeDiffOnOperation": true,
+		"git.defaultBranchName": "",
+		"git.mergeEditor": true,
+		"isort.args": [
+			"--profile",
+			"black"
+		],
+		"isort.check": true,
+		"mypy-type-checker.reportingScope": "workspace",
+		"mypy-type-checker.args": [
+			"--check-untyped-defs",
+			"import-untyped"
+		],
+		"mypy-type-checker.preferDaemon": true,
+		"pylint.args": [
+			"--disable=W0212",
+			"--disable=C0116",
+			"--disable=C0104",
+			"--diable=C0114",
+			"--argument-naming-style=camelCase",
+		],
+		
+		"pylint.ignorePatterns": [
+			".attic/*"
+		],
+		"python.analysis.autoFormatStrings": true,
+		"python.analysis.completeFunctionParens": true,
+		"python.analysis.exclude": [
+			".attic"
+		],
+		"python.analysis.extraPaths": [],
+		"python.analysis.inlayHints.functionReturnTypes": true,
+		"python.analysis.inlayHints.variableTypes": true,
+		"python.autoComplete.extraPaths": [],
+		"python.createEnvironment.contentButton": "show",
+		"python.formatting.autopep8Args": [
+			"--max-line-length",
+			"120",
+			"--experimental"
+		],
+		"python.languageServer": "Pylance",
+		"python.terminal.activateEnvInCurrentTerminal": false,
+		"python.testing.pytestArgs": [
+			"."
+		],
+		"python.testing.pytestEnabled": false,
+		"python.testing.unittestEnabled": false,
+		"python.venvPath": "venv",
+		"testing.automaticallyOpenTestResults": "openOnTestFailure",
+		"testing.coverageBarThresholds": {
+			"green": 90,
+			"red": 0,
+			"yellow": 60
+		},
+		"testing.defaultGutterClickAction": "contextMenu",
+		"testing.openTesting": "openOnTestFailure",
+		"workbench.colorCustomizations": {
+			"editorInlayHint.background": "#002b36",
+			"editorInlayHint.foreground": "#524a4a"
+		},
+		"workbench.colorTheme": "Default Dark Modern",
+		"workbench.settings.enableNaturalLanguageSearch": false,
+		"zenMode.centerLayout": false,
+		"zenMode.showTabs": "none"
+	}
+}
