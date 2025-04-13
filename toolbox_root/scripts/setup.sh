@@ -2,7 +2,7 @@
 set -e
 
 # common stuff
-MODULE_NAME=toolbox
+PACKAGE_NAME=toolbox
 SLEEP=3
 
 source ../../scripts/common.sh
@@ -11,8 +11,8 @@ source ../../scripts/common.sh
 gcloud \
     iam service-accounts create ${BUILD_ACCOUNT_NAME} \
     --project=$PROJECT_ID \
-    --display-name="${MODULE_NAME} build account ${ATTEMPT}" \
-    --description="Build account ${ATTEMPT} for ${MODULE_NAME}"
+    --display-name="${PACKAGE_NAME} build account ${ATTEMPT}" \
+    --description="Build account ${ATTEMPT} for ${PACKAGE_NAME}"
 sleep $SLEEP
 
 # grants to the account the role to allow write logs to Cloud Logging (used by cloudbuild.yaml)
