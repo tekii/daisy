@@ -58,3 +58,8 @@ var/
 venv_bak/
 venv/
 wheels/
+
+### TODO fix this is only temporary
+launch.json
+tasks.json
+extensions.json

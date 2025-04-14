@@ -1,44 +1,40 @@
 {
 	"folders": [
 		{
-			"name": "ROOT",
-			"path": "."
-		},
-		{
 			"name": "BOT",
-			"path": "bot_root"
+			"path": "./bot_root"
 		},
 		{
 			"name": "INGESTOR",
-			"path": "ingestor_root"
+			"path": "./ingestor_root"
 		},
 		{
 			"name": "ORANGE",
-			"path": "orange_root"
+			"path": "./orange_root"
 		},
 		{
 			"name": "OUZO",
-			"path": "ouzo_root"
+			"path": "./ouzo_root"
 		},
 		{
 			"name": "NOTIFY",
-			"path": "notify_root"
+			"path": "./notify_root"
 		},
 		{
 			"name": "EXPAND",
-			"path": "expand_root"
+			"path": "./expand_root"
 		},
 		{
 			"name": "BUNDLE",
-			"path": "bundle_root"
+			"path": "./bundle_root"
 		},
 		{
 			"name": "SCRIPTS",
-			"path": "scripts"
+			"path": "./scripts"
 		},
 		{
 			"name": "TRAZAMED",
-			"path": "trazamed_root"
+			"path": "./trazamed_root"
 		}
 	],
 	"settings": {
@@ -50,9 +46,9 @@
 			"editor.formatOnSave": true
 		},
 		"black-formatter.args": [
-			"--preview",
 			"--line-length",
-			"120",
+			"100",
+			"--preview"
 		],
 		"cloudcode.apigee.gemini.enable": false,
 		"cloudcode.autoDependencies": "off",
@@ -68,7 +64,7 @@
 		"cloudcode.enableTelemetry": false,
 		"cloudcode.project": "daisy-dev01",
 		"cloudcode.updateAdcOnLogin": false,
-		"editor.formatOnSave": false,
+		"editor.formatOnSave": true,
 		"editor.maxTokenizationLineLength": 200000,
 		"explorer.excludeGitIgnore": false,
 		"files.associations": {
@@ -82,8 +78,8 @@
 			"**/venv": true
 		},
 		"flake8.args": [
-			"--ignore=E402,F841,W503",
-			"--max-line-length=120"
+			"--ignore=E402,F841,W503,E203",
+			"--max-line-length=100"
 		],
 		"geminicodeassist.enable": false,
 		"geminicodeassist.enableTelemetry": false,
@@ -96,12 +92,12 @@
 			"black"
 		],
 		"isort.check": true,
-		"mypy-type-checker.reportingScope": "workspace",
 		"mypy-type-checker.args": [
 			"--check-untyped-defs",
-			"import-untyped"
+			"--disable-error-code=import-untyped"
 		],
 		"mypy-type-checker.preferDaemon": true,
+		"mypy-type-checker.reportingScope": "workspace",
 		"pylint.args": [
 			"--disable=W0212",
 			"--disable=C0116",
@@ -109,7 +105,6 @@
 			"--diable=C0114",
 			"--argument-naming-style=camelCase",
 		],
-		
 		"pylint.ignorePatterns": [
 			".attic/*"
 		],
@@ -125,17 +120,18 @@
 		"python.createEnvironment.contentButton": "show",
 		"python.formatting.autopep8Args": [
 			"--max-line-length",
-			"120",
+			"100",
 			"--experimental"
 		],
 		"python.languageServer": "Pylance",
-		"python.terminal.activateEnvInCurrentTerminal": false,
+		"python.terminal.activateEnvInCurrentTerminal": true,
+		"python.terminal.shellIntegration.enabled": true,
 		"python.testing.pytestArgs": [
 			"."
 		],
 		"python.testing.pytestEnabled": false,
 		"python.testing.unittestEnabled": false,
-		"python.venvPath": "venv",
+		"sarif-viewer.connectToGithubCodeScanning": "off",
 		"testing.automaticallyOpenTestResults": "openOnTestFailure",
 		"testing.coverageBarThresholds": {
 			"green": 90,
@@ -143,7 +139,6 @@
 			"yellow": 60
 		},
 		"testing.defaultGutterClickAction": "contextMenu",
-		"testing.openTesting": "openOnTestFailure",
 		"workbench.colorCustomizations": {
 			"editorInlayHint.background": "#002b36",
 			"editorInlayHint.foreground": "#524a4a"
