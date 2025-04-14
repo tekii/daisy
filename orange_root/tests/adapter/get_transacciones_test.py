@@ -1,8 +1,7 @@
 import pytest
 
-from adapter import OperationAdapter
-from . import *
-from .get_transacciones_adapter import *
+from adapter import OperationAdapter, TheService, AdapterError
+from adapter.get_transacciones_adapter import _GetTransaccionesAdapter
 
 
 @pytest.fixture()  # name="THE_ARGS")
@@ -29,9 +28,11 @@ def complete_args():
     ]
 
 
-def test_get_transacciones_args_full(complete_args, entrenamiento_credentials, testing_service:type[TheService]):
+def test_get_transacciones_args_full(
+    complete_args, entrenamiento_credentials, testing_service: type[TheService]
+):
     operation = "GET_TRANSACCIONES"
-    adapter = testing_service.get_adapter(operation,True)
+    adapter = testing_service.get_adapter(operation, True)
     assert isinstance(adapter, OperationAdapter)
     assert isinstance(adapter, _GetTransaccionesAdapter)
     _ = adapter(*complete_args, agent_credentials=entrenamiento_credentials)
@@ -40,7 +41,9 @@ def test_get_transacciones_args_full(complete_args, entrenamiento_credentials, t
 
 @pytest.mark.bad_request
 @pytest.mark.marshal_error
-def test_get_transacciones_args_invalid_isoformat(complete_args, entrenamiento_credentials, testing_service:type[TheService]):
+def test_get_transacciones_args_invalid_isoformat(
+    complete_args, entrenamiento_credentials, testing_service: type[TheService]
+):
     operation = "GET_TRANSACCIONES"
     adapter = testing_service.get_adapter(operation, True)
     assert isinstance(adapter, OperationAdapter)
@@ -52,8 +55,10 @@ def test_get_transacciones_args_invalid_isoformat(complete_args, entrenamiento_c
     pass
 
 
-def test_get_transacciones_args_all_nulls(entrenamiento_credentials, testing_service:type[TheService]):
-    adapter = TheService().get_adapter("GET_TRANSACCIONES",True)
+def test_get_transacciones_args_all_nulls(
+    entrenamiento_credentials, testing_service: type[TheService]
+):
+    adapter = TheService().get_adapter("GET_TRANSACCIONES", True)
     assert isinstance(adapter, OperationAdapter)
     assert isinstance(adapter, _GetTransaccionesAdapter)
     all_null_args = [
@@ -80,10 +85,9 @@ def test_get_transacciones_args_all_nulls(entrenamiento_credentials, testing_ser
     pass
 
 
-def test_marshalship_singleton(testing_service:type[TheService]):
+def test_marshalship_singleton(testing_service: type[TheService]):
     there_can_be_only_one = TheService()
     assert there_can_be_only_one is testing_service
     assert there_can_be_only_one is testing_service.configure_or_die()
-    #adapter = there_can_be_only_one.get_adapter("GET_TRANSACCIONES")
+    # adapter = there_can_be_only_one.get_adapter("GET_TRANSACCIONES")
     pass
-    

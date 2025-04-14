@@ -8,11 +8,12 @@ minversion = "7.0"
 addopts = [ "--cov=src", ]
 pythonpath = "src"
 testpaths = [ "tests", ]
-#markers = [ 
-#    "bad_request: marks tests as slow (deselect with '-m "not slow"')",
-#    "agent_credentials",
-#    "mock_data", 
-#    ]
+markers = [ 
+    "bad_request: marks tests as slow (deselect with '-m not slow')", 
+    "agent_credentials", 
+    "mock_data", 
+    "environment_undefined","marshal_error",
+]
 
 [tool.coverage.run]
 omit = ["tests/**"]

@@ -22,10 +22,11 @@ def post_method(monkeypatch, TEST_AGENT):
     # pylint: disable=C0415
     from functions_framework import create_app
 
-    _source = pathlib.Path(__file__).resolve().parent / "main.py"
+    _source = pathlib.Path("src/main.py")
     _app = create_app("the_function", _source, "http")
 
-    # this controls if the exceptions propagate to the test or are handled by the subject and return http 500.
+    # this controls if the exceptions propagate to the test or are handled by the subject and
+    # return http 500.
     _app.testing = True
     _client = _app.test_client()
 
@@ -103,7 +104,10 @@ def test_request_user_defined_context_is_missing(post_method, MOCK_SINGLE_CALL_R
     del MOCK_SINGLE_CALL_REQUEST["userDefinedContext"]
     response = post_method(data=json.dumps(MOCK_SINGLE_CALL_REQUEST))
     assert response.status_code == 400
-    assert response.data == b'{"errorMessage":"Missing key \'userDefinedContext\' accesing userDefinedContext."}\n'
+    assert (
+        response.data
+        == b'{"errorMessage":"Missing key \'userDefinedContext\' accesing userDefinedContext."}\n'
+    )
 
 
 @pytest.mark.bad_request
@@ -122,7 +126,8 @@ def test_invalid_timestamp_isoformat(post_method, MOCK_SINGLE_CALL_REQUEST, capl
     assert response.status_code == 400
     assert len(caplog.records) == 1
     assert caplog.records.pop().levelname == "ERROR"
-    # assert response.data == b'{"errorMessage":"Unauthorized or Undefined credentials for agent: 0000000000001"}\n'
+    # assert response.data
+    # == b'{"errorMessage":"Unauthorized or Undefined credentials for agent: 0000000000001"}\n'
 
 
 @pytest.mark.agent_credentials
@@ -130,7 +135,9 @@ def test_unauthorized_agent(post_method, MOCK_SINGLE_CALL_REQUEST):
     MOCK_SINGLE_CALL_REQUEST["calls"][0][0] = "0000000000001"
     response = post_method(data=json.dumps(MOCK_SINGLE_CALL_REQUEST))
     assert response.status_code == 401
-    assert response.data == b'{"errorMessage":"Unauthorized credentials for agent: 0000000000001"}\n'
+    assert (
+        response.data == b'{"errorMessage":"Unauthorized credentials for agent: 0000000000001"}\n'
+    )
 
 
 @pytest.mark.mock_data
@@ -229,7 +236,10 @@ def test_mock_get_catalogo_dateset_some(post_method):
         "requestId": "124ab1c",
         "caller": "//dummy.example.com/projects/dummy/jobs/dummy:US.dummy_id",
         "sessionUser": "test-user@test-company.com",
-        "userDefinedContext": {"soap_operation": "GET_CATALOGO_ELECTRONICO_BY_GLN", "mock_data": ""},
+        "userDefinedContext": {
+            "soap_operation": "GET_CATALOGO_ELECTRONICO_BY_GLN",
+            "mock_data": "",
+        },
         "calls": [["glnws", None, None, None, None, None, 1, 100]],
     }
     response = post_method(data=json.dumps(test_request))

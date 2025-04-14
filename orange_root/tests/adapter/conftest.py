@@ -1,12 +1,10 @@
 import pytest
-from adapter import *
+from adapter import TheService
 
 
 @pytest.fixture(autouse=False)
 def testing_service(monkeypatch):
-    monkeypatch.setenv(
-        "TARGET_URL", "https%3A%2F%2Fservicios.pami.org.ar%2Ftrazamed.WebService"
-    )
+    monkeypatch.setenv("TARGET_URL", "https%3A%2F%2Fservicios.pami.org.ar%2Ftrazamed.WebService")
     monkeypatch.setenv("CONNECT_TIMEOUT", "30")
     monkeypatch.setenv("READ_TIMEOUT", "1800")
     # seems to be that isinstance doesnt works because the multiple import paths...

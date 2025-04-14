@@ -1,8 +1,10 @@
 from datetime import datetime
 from types import SimpleNamespace
-from typing import Any, List, Dict, Tuple
+from typing import Any, Dict, List, Tuple
+
 from zeep import helpers
-from . import OperationAdapter, AdapterError
+
+from . import AdapterError, OperationAdapter
 
 __all__ = [
     "_GetCatalogoElectronicoByGLNAdapter",
@@ -25,8 +27,10 @@ class _GetCatalogoElectronicoByGLNAdapter(OperationAdapter):
                 "arg4": args[3],  # Descripción
                 "arg5": None if args[4] is None else int(args[4]),  # ID Provincia
                 "arg6": args[5],  # ID Tipo Agente
-                "arg7": None if args[6] is None else int(args[6]),  #  Número de página
-                "arg8": None if args[7] is None else int(args[7]),  #  Cantidad de registros por página (máximo 100)
+                "arg7": None if args[6] is None else int(args[6]),  # Número de página
+                "arg8": (
+                    None if args[7] is None else int(args[7])
+                ),  # Cantidad de registros por página (máximo 100)
             }
         except ValueError as e:
             raise AdapterError(*e.args, code=400) from None
@@ -40,17 +44,35 @@ class _GetCatalogoElectronicoByGLNAdapter(OperationAdapter):
                 for r in results.list:
                     d = helpers.serialize_object(r, dict)
                     d["fecha_alta"] = (
-                        None if d["fecha_alta"] is None else datetime.strptime(d["fecha_alta"], "%d/%m/%Y").date().strftime("%Y-%m-%d")
+                        None
+                        if d["fecha_alta"] is None
+                        else datetime.strptime(d["fecha_alta"], "%d/%m/%Y")
+                        .date()
+                        .strftime("%Y-%m-%d")
                     )
                     d["fecha_baja"] = (
-                        None if d["fecha_baja"] is None else datetime.strptime(d["fecha_baja"], "%d/%m/%Y").date().strftime("%Y-%m-%d")
+                        None
+                        if d["fecha_baja"] is None
+                        else datetime.strptime(d["fecha_baja"], "%d/%m/%Y")
+                        .date()
+                        .strftime("%Y-%m-%d")
                     )
                     d["fecha_ult_modificacion"] = (
-                        None if d["fecha_ult_modificacion"] is None else datetime.strptime(d["fecha_ult_modificacion"], "%d/%m/%Y").date().strftime("%Y-%m-%d")
+                        None
+                        if d["fecha_ult_modificacion"] is None
+                        else datetime.strptime(d["fecha_ult_modificacion"], "%d/%m/%Y")
+                        .date()
+                        .strftime("%Y-%m-%d")
                     )
-                    d["id_localidad"] = None if d["id_localidad"] is None else int(d["id_localidad"])
-                    d["id_provincia"] = None if d["id_provincia"] is None else int(d["id_provincia"])
-                    d["id_tipo_agente"] = None if d["id_tipo_agente"] is None else int(d["id_tipo_agente"])
+                    d["id_localidad"] = (
+                        None if d["id_localidad"] is None else int(d["id_localidad"])
+                    )
+                    d["id_provincia"] = (
+                        None if d["id_provincia"] is None else int(d["id_provincia"])
+                    )
+                    d["id_tipo_agente"] = (
+                        None if d["id_tipo_agente"] is None else int(d["id_tipo_agente"])
+                    )
                     dumped.append(d)
 
                 return dumped
@@ -96,5 +118,5 @@ class _GetCatalogoElectronicoByGLNAdapter(OperationAdapter):
     }
     for n in range(260):
         row = _MOCK_ROW.copy()
-        #row["_id_transaccion"] += n  # type: ignore
+        # row["_id_transaccion"] += n  # type: ignore
         _mock_data_.append(row)

@@ -1,21 +1,23 @@
 import logging
 import sys
-from flask import jsonify, abort
-from requests import Timeout, ConnectionError  # , ConnectTimeout, ReadTimeout
+
 import functions_framework
+from flask import abort, jsonify
+from requests import ConnectionError, Timeout  # , ConnectTimeout, ReadTimeout
 
-from adapter import *
-from adapter.get_transacciones_adapter import *
-from adapter.get_transacciones_no_confirmadas_adapter import *
-from adapter.get_catalogo_electronico_by_gln_adapter import *
-
+from adapter import AdapterError, OperationAdapter, TheService
+from adapter.get_catalogo_electronico_by_gln_adapter import *  # noqa F403, F401
+from adapter.get_transacciones_adapter import *  # noqa F403, F401
+from adapter.get_transacciones_no_confirmadas_adapter import *  # noqa F403, F401
 
 # logging.getLogger().setLevel(logging.INFO)
 
 
 def recover_agent_credentials():
     import json
-    from google.auth import default as default_credentials  # mypy: --disable-error-code=import-untyped
+
+    from google.auth import default as default_credentials
+
     from google.cloud import secretmanager
 
     # recover the project id of the active project
@@ -26,7 +28,8 @@ def recover_agent_credentials():
     name = f"projects/{project_id}/secrets/AGENT_CREDENTIALS/versions/latest"
     response = client.access_secret_version(name=name)
 
-    # if the proper secret its not defined is a FATAL/CRITICAL and the function should terminate immidiatly
+    # if the proper secret its not defined is a FATAL/CRITICAL and the function should
+    # terminate immidiatly
     # return the decoded payload.
     secret_data = response.payload.data.decode("UTF-8")
     secret = json.loads(secret_data)
@@ -35,7 +38,9 @@ def recover_agent_credentials():
     if "version" in secret.keys() and secret["version"] == "2":
         return secret["credentials"]
     else:
-        from google.cloud import error_reporting  # mypy: --disable-error-code=attr-defined
+        from google.cloud import (  # mypy: --disable-error-code=attr-defined
+            error_reporting,
+        )
 
         error_reporting.Client().report("Undefined AGENT_CREDENTIALS.")
         return None
@@ -131,7 +136,8 @@ def the_function(request):
         agent = call_args[0]
         # credentials 4 this call
         agent_credentials = _AGENT_CREDENTIALS.get(agent)
-        # unfortunatly we los all replies if this fails. this is an non critical because only this agent is undef/unauth
+        # unfortunatly we los all replies if this fails. this is
+        # an non critical because only this agent is undef/unauth
         if agent_credentials is None:
             abort(401, f"Unauthorized credentials for agent: {agent}")
 

@@ -1,18 +1,20 @@
-""" OperationAdapter / UnMarshal BQ User Define Function return values and args - https://docs.python.org/3/library/marshal.html#id2 """
+"""OperationAdapter / UnMarshal BQ User Define Function return values and args
+- https://docs.python.org/3/library/marshal.html#id2"""
 
+import logging
 import os
 import pathlib
 import sys
 import urllib.parse
-import logging
 from abc import ABCMeta, abstractmethod
-from typing import Any, Callable, ClassVar, Dict, List, Self, Tuple
-from datetime import datetime
+
+# from datetime import datetime
+from typing import Any, Callable, ClassVar, Dict, List, Self, Tuple  # noqa: F401
 
 #
-from zeep import Client, Settings, helpers
+from zeep import Client, Settings, helpers  # noqa: F401
+from zeep.proxy import OperationProxy, ServiceProxy  # noqa: F401
 from zeep.transports import Transport
-from zeep.proxy import ServiceProxy, OperationProxy
 from zeep.wsse.username import UsernameToken
 
 __all__ = ["OperationAdapter", "AdapterError", "TheService"]
@@ -50,19 +52,27 @@ class OperationAdapter(metaclass=ABCMeta):
 
     @abstractmethod
     def load(self, *args):
-        """load the positional args of the UDF into the kw ones in the API, need to be override for each operation"""
+        """load the positional args of the UDF into the kw ones in the API,
+        need to be override for each operation"""
         # https://cloud.google.com/bigquery/docs/reference/standard-sql/json_functions#json_encodings
         # https://cloud.google.com/bigquery/docs/remote-functions#json_encoding_of_sql_data_type
         return {}
 
     @abstractmethod
     def dump(self, results) -> List[Dict[str, Any]] | None:
-        """Ensures JSON data respond to https://cloud.google.com/bigquery/docs/remote-functions#json_encoding_of_sql_data_type"""
+        """Ensures JSON data respond to
+        https://cloud.google.com/bigquery/docs/remote-functions#json_encoding_of_sql_data_type"""
         return []
 
     def __call__(self, *args: Any, agent_credentials: dict) -> Any:
         # https://www.digitalocean.com/community/tutorials/how-to-use-args-and-kwargs-in-python-3
-        return self.dump(self._proxy(arg0=agent_credentials["user"], arg1=agent_credentials["password"], **self.load(*args)))
+        return self.dump(
+            self._proxy(
+                arg0=agent_credentials["user"],
+                arg1=agent_credentials["password"],
+                **self.load(*args)
+            )
+        )
 
 
 class TheService(object):
@@ -101,14 +111,17 @@ class TheService(object):
                 logging.fatal("CONNECT_TIMEOUT or READ_TIMEOUT NaN.")
                 sys.exit(1)
             # TODO check the allow max times in Cloud functions and BigQuery
-            # we will not attempt any handling other than pass the proper error and relay on the BQ retry criteria
+            # we will not attempt any handling other than pass the proper error
+            # and relay on the BQ retry criteria
             transport = Transport(operation_timeout=operation_timeout)
             # not sure if i need to retain the client or the service holds the reference
             client = Client(
                 wsdl=pathlib.Path(__file__).resolve().parent.joinpath("trazamed.wsdl").as_uri(),
                 wsse=UsernameToken("testwservice", "testwservicepsw"),
                 # transport=transport,
-                settings=Settings(strict=False, xml_huge_tree=False, force_https=True, raw_response=False),
+                settings=Settings(
+                    strict=False, xml_huge_tree=False, force_https=True, raw_response=False
+                ),
             )
             # instanciate the service pointing to the actual prod/test environment
             cls._service_proxy = client.create_service(

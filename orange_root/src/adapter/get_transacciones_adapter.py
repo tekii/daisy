@@ -1,8 +1,10 @@
 from datetime import datetime
 from types import SimpleNamespace
-from typing import Any, List, Dict, Tuple
+from typing import Any, Dict, List, Tuple
+
 from zeep import helpers
-from . import OperationAdapter, AdapterError
+
+from . import AdapterError, OperationAdapter
 
 __all__ = [
     "_GetTransaccionesAdapter",
@@ -34,16 +36,40 @@ class _GetTransaccionesAdapter(OperationAdapter):
                 "arg4": args[3],  # gln_agente_destino
                 "arg5": args[4],  # gtin_medicamento
                 "arg6": None if args[5] is None else int(args[5]),  # arg6 id_evento
-                "arg7": None if args[6] is None else datetime.fromisoformat(args[6]).date().strftime("%d/%m/%Y"),  # f_operacion_desde
-                "arg8": None if args[7] is None else datetime.fromisoformat(args[7]).date().strftime("%d/%m/%Y"),  # f_operacion_hasta
-                "arg9": None if args[8] is None else datetime.fromisoformat(args[8]).strftime("%d/%m/%Y %H:%M"),  # f_transaccion_desde
-                "arg10": None if args[9] is None else datetime.fromisoformat(args[9]).strftime("%d/%m/%Y %H:%M"),  # f_transaccion_hasta
-                "arg11": None if args[10] is None else datetime.fromisoformat(args[10]).date().strftime("%d/%m/%Y"),  # f_vencimiento_desde
-                "arg12": None if args[11] is None else datetime.fromisoformat(args[11]).date().strftime("%d/%m/%Y"),  # f_vencimiento_hasta
+                "arg7": (
+                    None
+                    if args[6] is None
+                    else datetime.fromisoformat(args[6]).date().strftime("%d/%m/%Y")
+                ),  # f_operacion_desde
+                "arg8": (
+                    None
+                    if args[7] is None
+                    else datetime.fromisoformat(args[7]).date().strftime("%d/%m/%Y")
+                ),  # f_operacion_hasta
+                "arg9": (
+                    None
+                    if args[8] is None
+                    else datetime.fromisoformat(args[8]).strftime("%d/%m/%Y %H:%M")
+                ),  # f_transaccion_desde
+                "arg10": (
+                    None
+                    if args[9] is None
+                    else datetime.fromisoformat(args[9]).strftime("%d/%m/%Y %H:%M")
+                ),  # f_transaccion_hasta
+                "arg11": (
+                    None
+                    if args[10] is None
+                    else datetime.fromisoformat(args[10]).date().strftime("%d/%m/%Y")
+                ),  # f_vencimiento_desde
+                "arg12": (
+                    None
+                    if args[11] is None
+                    else datetime.fromisoformat(args[11]).date().strftime("%d/%m/%Y")
+                ),  # f_vencimiento_hasta
                 "arg13": args[12],  # remito
                 "arg14": args[13],  # factura
-                "arg15": None if args[14] is None else int(args[14]),  #  estado
-                "arg16": None if args[15] is None else int(args[15]),  #  pagina
+                "arg15": None if args[14] is None else int(args[14]),  # estado
+                "arg16": None if args[15] is None else int(args[15]),  # pagina
             }
         except ValueError as e:
             raise AdapterError(*e.args, code=400) from None
@@ -57,19 +83,31 @@ class _GetTransaccionesAdapter(OperationAdapter):
                 for r in results.list:
                     d = helpers.serialize_object(r, dict)
                     d["_f_evento"] = (
-                        None if d["_f_evento"] is None else datetime.strptime(d["_f_evento"], "%d/%m/%Y").date().strftime("%Y-%m-%d")
+                        None
+                        if d["_f_evento"] is None
+                        else datetime.strptime(d["_f_evento"], "%d/%m/%Y")
+                        .date()
+                        .strftime("%Y-%m-%d")
                     )
                     d["_f_transaccion"] = (
                         None
                         if d["_f_transaccion"] is None
-                        else datetime.strptime(d["_f_transaccion"], "%d/%m/%Y %H:%M").strftime("%Y-%m-%dT%H:%M")
+                        else datetime.strptime(d["_f_transaccion"], "%d/%m/%Y %H:%M").strftime(
+                            "%Y-%m-%dT%H:%M"
+                        )
                     )
                     d["_vencimiento"] = (
-                        None if d["_vencimiento"] is None else datetime.strptime(d["_vencimiento"], "%d/%m/%Y").date().strftime("%Y-%m-%d")
+                        None
+                        if d["_vencimiento"] is None
+                        else datetime.strptime(d["_vencimiento"], "%d/%m/%Y")
+                        .date()
+                        .strftime("%Y-%m-%d")
                     )
                     d["_id_estado"] = None if d["_id_estado"] is None else int(d["_id_estado"])
                     d["_id_evento"] = None if d["_id_evento"] is None else int(d["_id_evento"])
-                    d["_id_detalle_evento"] = None if d["_id_detalle_evento"] is None else int(d["_id_detalle_evento"])
+                    d["_id_detalle_evento"] = (
+                        None if d["_id_detalle_evento"] is None else int(d["_id_detalle_evento"])
+                    )
                     del d["_ver2_paciente_apellido"]
                     del d["_ver2_paciente_documento"]
                     del d["_ver2_paciente_id_documento"]
