@@ -1,5 +1,5 @@
 import pytest
-from tekii.margot.toolbox import gs1  # type: ignore
+from tekii.margot.toolbox import gs1  # noqa: import-not-found
 
 
 def test_01():

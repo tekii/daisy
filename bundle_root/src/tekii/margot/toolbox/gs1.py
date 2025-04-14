@@ -1,7 +1,7 @@
 """GS1"""
 
-from typing import Literal
 import re
+from typing import Literal
 
 __all__ = ["GTIN", "GLN"]
 

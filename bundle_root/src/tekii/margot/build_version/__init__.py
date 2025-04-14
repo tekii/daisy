@@ -9,7 +9,12 @@ __all__ = [
 ]
 
 
-def generate(major: int, valid_since: datetime, short_sha: str | None = None, version_now: datetime | None = None):
+def generate(
+    major: int,
+    valid_since: datetime,
+    short_sha: str | None = None,
+    version_now: datetime | None = None,
+) -> version.Version:
     """Generate a new version"""
     now = version_now if version_now is not None else datetime.now(timezone.utc)
     minor = int((now - valid_since).total_seconds())

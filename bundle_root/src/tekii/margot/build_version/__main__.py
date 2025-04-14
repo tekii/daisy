@@ -3,7 +3,6 @@ from datetime import datetime
 
 from . import generate
 
-
 if 2 < len(sys.argv) < 5:
     try:
         major = int(sys.argv[1])
@@ -19,10 +18,13 @@ if 2 < len(sys.argv) < 5:
         with open("VERSION", "w") as vout:
             vout.write(str(version))
 
-        print(f"VERSION file is now {version}, API version{version.major} is valid {version.minor} seconds since {valid_since}")
+        print(
+            f"VERSION file is now {version}, API version{version.major}"
+            " is valid {version.minor} seconds since {valid_since}"
+        )
 
-    except:
-        print(f"Invalid argument", file=sys.stderr)
+    except Exception as e:
+        print(f"Invalid argument: {str(e)}", file=sys.stderr)
         sys.exit(1)
 else:
     print("Wrong argument count", file=sys.stderr)

@@ -10,6 +10,9 @@ classifiers = [
 requires-python = ">= 3.0.0"
 dynamic = [ "version", "dependencies", ]
 
+[project.scripts]
+tekii_build_version = "tekii.margot.build_version:__main__"
+
 [build-system]
 # artifact support up to 2.2 metadata version
 requires = ["setuptools>=76,<77.0.1"]
