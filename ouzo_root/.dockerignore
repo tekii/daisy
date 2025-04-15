@@ -1,0 +1,13 @@
+.aiexclude
+.dockerignore
+.gcloudignore
+.gitignore
+*.service
+*.sh
+*.target
+Dockerfile
+notes.txt
+project.toml
+tests/**
+VERSION
+#!include:.gitignore

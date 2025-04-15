@@ -1,0 +1,83 @@
+#
+steps:
+- name: ${_PYIMAGE}
+  entrypoint: 'python'
+  args: 
+  - '-m'
+  - 'pip'
+  - 'install'
+  - '--progress-bar'
+  - 'off'
+  - '--root-user-action'
+  - 'ignore'
+  - '--no-warn-script-location'
+  - '--user' # this prevent losing the upgrade between steps
+  - '--upgrade'
+  - 'pip'
+  - 'build'
+  dir: ${_BUILD_ROOT}
+
+# generate a unique version and save to the VERSION file
+- name: ${_PYIMAGE}
+  entrypoint: python
+  args: 
+  - '-m'
+  - 'tekii.margot.build_version'
+  - '1'
+  - '2025-04-11T06:22:00Z'
+  - '${SHORT_SHA}'
+  dir: ${_BUILD_ROOT}
+  env: 
+  - 'PYTHONPATH=src'
+
+# build the package
+- name: ${_PYIMAGE}
+  entrypoint: python
+  args:
+  - '-m'
+  - 'build'
+  dir: ${_BUILD_ROOT}
+
+# install tests requeriments
+- name: ${_PYIMAGE}
+  entrypoint: 'python'
+  args: 
+  - '-m'
+  - 'pip'
+  - 'install'
+  - '--progress-bar'
+  - 'off'
+  - '--root-user-action'
+  - 'ignore'
+  - '--no-warn-script-location'
+  - '--user' 
+  - '-r'
+  - 'requirements_test.txt'
+  dir: ${_BUILD_ROOT}
+
+# run the tests
+- name: ${_PYIMAGE}
+  entrypoint: 'python'
+  args: 
+  - '-m'
+  - 'pytest'
+  - '--no-cov'
+  dir: ${_BUILD_ROOT}
+# - '--junitxml'
+# - '${SHORT_SHA}_test_log.xml'
+
+# if tests pass publish the packages
+artifacts:
+  # support python metadata version up to 2.2 (setuptools<77.0.1)
+  pythonPackages:
+  - repository: 'https://${_PYTHON_REPO_URL}'
+    paths: ['${_BUILD_ROOT}/dist/*']
+
+substitutions:
+  _PYIMAGE: 'python:3.12'
+  _BUILD_ROOT: bundle_root
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+

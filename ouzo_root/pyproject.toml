@@ -1,0 +1,25 @@
+[project]
+name = "ouzo"
+description = "OUZO Service"
+requires-python = ">=3"
+#dynamic = [ "version", "dependencies", ]
+version = "0.0+dev"
+
+#[tool.setuptools.dynamic]
+#version = {file = "VERSION"}
+#dependencies = {file = "requirements.txt"}
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = [ "--cov=src", ]
+pythonpath = "src"
+testpaths = [ "tests", ]
+
+[tool.coverage.run]
+omit = ["tests/**"]
+
+[tool.isort]
+profile = "black"
+src_paths = "src"
+skip = [".gitignore", ".dockerignore"]
+extend_skip_glob = ["tests/*"]
