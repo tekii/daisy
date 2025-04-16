@@ -26,13 +26,19 @@ def test_table_creation(the_history_module):
     table_name = the_history_module._TABLE + "_test"
     the_history_module._TABLE = table_name
 
-    history.config.the_bq_client.delete_table(table=f"{history.config.PROJECT}.{history.config.DATASET}.{table_name}", not_found_ok=True)
+    history.config.the_bq_client.delete_table(
+        table=f"{history.config.PROJECT}.{history.config.DATASET}.{table_name}",
+        not_found_ok=True,
+    )
 
     the_history_module.create_table(0)
     id = the_history_module.get_id()
     assert id is None
 
-    history.config.the_bq_client.delete_table(table=f"{history.config.PROJECT}.{history.config.DATASET}.{table_name}", not_found_ok=False)
+    history.config.the_bq_client.delete_table(
+        table=f"{history.config.PROJECT}.{history.config.DATASET}.{table_name}",
+        not_found_ok=False,
+    )
 
 
 def test_save_id(the_history_module):
@@ -43,8 +49,11 @@ def test_save_id(the_history_module):
 
     the_history_module.save_id(4255018)
 
-    query = f"""SELECT id FROM `{history.config.PROJECT}.{history.config.DATASET}.{table_name}` WHERE id = @id LIMIT 10;"""
-    job_config = bq.QueryJobConfig(query_parameters=[bq.ScalarQueryParameter("id", "INTEGER", 4255018)])
+    query = f"""SELECT id FROM `{history.config.PROJECT}.{history.config.DATASET}.{table_name}`
+    WHERE id = @id LIMIT 10;"""
+    job_config = bq.QueryJobConfig(
+        query_parameters=[bq.ScalarQueryParameter("id", "INTEGER", 4255018)]
+    )
     results = history.config.the_bq_client.query_and_wait(
         query, job_config=job_config, project=history.config.PROJECT
     )  # Make an API request.
@@ -61,4 +70,5 @@ def test_save_id(the_history_module):
 #    credentials, project = the_test_client
 #    client = bigquery.Client(project=project, credentials=credentials)
 #
-#    the_ingest_module.insert_attachment(client, project, 0, "aaaa", "q@a.b", datetime.now(), "test", "bbbb", "FILE.TXT")
+#    the_ingest_module.insert_attachment(
+#       client, project, 0, "aaaa", "q@a.b", datetime.now(), "test", "bbbb", "FILE.TXT")

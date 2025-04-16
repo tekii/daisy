@@ -1,17 +1,18 @@
-""" """
-
+import base64
+from datetime import datetime
+from email.utils import parsedate_to_datetime
+from io import BytesIO
 from typing import NamedTuple
-from google.auth import default as default_credentials, iam
+
+from google.auth import default as default_credentials
+from google.auth import iam
 from google.auth.transport import requests
 
 # from google.auth.exceptions import GoogleAuthError
 from google.oauth2 import service_account
 from googleapiclient.discovery import build  # type: ignore[import-untyped]
 from googleapiclient.errors import HttpError  # type: ignore[import-untyped]
-import base64
-from io import BytesIO
-from datetime import datetime
-from email.utils import parsedate_to_datetime
+
 from helpers import configuration as config
 
 __all__ = ["get_delegated_credentials", "attachments_since", "each_attachment_data_since"]
@@ -49,8 +50,8 @@ def get_delegated_credentials(
 
         except AttributeError:
 
-            # Looks like we are in the cloud  Refresh the boostrap credentials. This ensures that the information
-            # about this account, notably the email, is populated.
+            # Looks like we are in the cloud  Refresh the boostrap credentials. This ensures
+            # that the information about this account, notably the email, is populated.
             request = requests.Request()
             credentials.refresh(request)
 
@@ -111,7 +112,9 @@ def attachments_since(start_history_id, credentials):
                     if messages_added:
                         for message_added in messages_added:
                             message_id = message_added["message"]["id"]
-                            message = client.users().messages().get(userId="me", id=message_id).execute()
+                            message = (
+                                client.users().messages().get(userId="me", id=message_id).execute()
+                            )
                             # cherry pick headers
                             headers = message["payload"]["headers"]
                             header_subject = None
@@ -132,7 +135,7 @@ def attachments_since(start_history_id, credentials):
                             # check payload mimeType
                             for part in message["payload"]["parts"]:
                                 filename = part["filename"]
-                                if filename != None and filename != "":
+                                if filename is not None and filename != "":
                                     body = part.get("body")
                                     # this case never happens
                                     data = body.get("data")
@@ -144,7 +147,9 @@ def attachments_since(start_history_id, credentials):
                                             client.users()
                                             .messages()
                                             .attachments()
-                                            .get(userId="me", id=attachment_id, messageId=message_id)
+                                            .get(
+                                                userId="me", id=attachment_id, messageId=message_id
+                                            )
                                             .execute()
                                         )
                                         data = attachment["data"]
@@ -194,8 +199,8 @@ def attachments_since(start_history_id, credentials):
 
 
 def each_attachment_data_since(start_history_id: int, credentials):
-    # this function has no state of its own, its depend entirely on someone store the start_history_id outside
-    #
+    # this function has no state of its own, its depend entirely on someone store the
+    # start_history_id outside
     config.logger.info(f"Attempting to retrieve attachment ids since {str(start_history_id)}.")
 
     client = build("gmail", "v1", credentials=credentials)
@@ -230,7 +235,9 @@ def each_attachment_data_since(start_history_id: int, credentials):
                         for message_added in messages_added:
                             message_id: str = message_added["message"]["id"]
                             # recover the actual message
-                            message = client.users().messages().get(userId="me", id=message_id).execute()
+                            message = (
+                                client.users().messages().get(userId="me", id=message_id).execute()
+                            )
 
                             # cherry pick headers
                             headers = message["payload"]["headers"]

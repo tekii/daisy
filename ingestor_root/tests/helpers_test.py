@@ -1,6 +1,3 @@
-import pytest
-
-
 def test_singleton(test_runner_service_account_credentials):
 
     from helpers import configuration

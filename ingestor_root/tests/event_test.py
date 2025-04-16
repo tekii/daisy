@@ -16,7 +16,7 @@ def mock_attachment_buffer():
 06000779339709065721MA003A         2025053100004943            202410070716779339701002020-21452470-9000400188336 000000000000028420241007SCHLENDER SESE, WALTER HEC
 07010779339705124521FV038B         2025083100069330            20240918141277933970100207798169400023002300187191 000000000000291220240918
 070107793397080122210024001719     2027022800221104            20240918141277933970100207798166490003002300187196 000000000000259220240918
-"""
+"""  # noqa: E501
     )
 
 
@@ -76,12 +76,19 @@ def test_event_07(mock_attachment_buffer, test_stuff) -> None:
         message_from="a@b.c",
         message_date=parsedate_to_datetime("27 Sep 2024 11:43:58 -0300"),
         message_subject="the subject",
-        attachment_id="ANGjdJ_deHe7fENfIhMS1GHfH2zZ_Lw66velytd13TEvoFpbUVsT_xdujKFOKcL0l3O0gwmW3ihl3zTn1n1gUcLmzV_UV6Y7JlWNKr42RYCEaH0W60gCj9Ml7h5SWnpjHpjOZCDGEsA4yAc3-RnyUP7YmVzPWvzttqghoFcSa2JIj04lJlu-HJnmYlP1HX-qN014vYR3UiwT7U5Y-su8pDpzRYAibzOyyzzvBD6I0BLJ3opG5Q0O6CCz7wa8gEpSDAzWDfppa_gh8s2Oo0LMkq67wmDNnV-IrSnMCI7HecChpFYvDVTBz_CiJSKQzvPP48QZKoNmUAAv6TTCeCOlcwCViIM7F3QfW7X87s-0xw7mj0i-puswnpj5cRCJH-MQdP_yKPe0_YgJwUY_brww",
+        attachment_id="ANGjdJ_deHe7fENfIhMS1GHfH2zZ_Lw66velytd13TEvoFpbUVsT_xdujKFOKcL0l3"
+        "O0gwmW3ihl3zTn1n1gUcLmzV_UV6Y7JlWNKr42RYCEaH0W60gCj9Ml7h5SWnpjHpjOZCDGEsA4yAc3-R"
+        "nyUP7YmVzPWvzttqghoFcSa2JIj04lJlu-HJnmYlP1HX-qN014vYR3UiwT7U5Y-su8pDpzRYAibzOyyz"
+        "zvBD6I0BLJ3opG5Q0O6CCz7wa8gEpSDAzWDfppa_gh8s2Oo0LMkq67wmDNnV-IrSnMCI7HecChpFYvDV"
+        "TBz_CiJSKQzvPP48QZKoNmUAAv6TTCeCOlcwCViIM7F3QfW7X87s-0xw7mj0i-puswnpj5cRCJH-MQdP"
+        "_yKPe0_YgJwUY_brww",
         filename="TUTEUR2309240817.TXT",
     )
     # client = bq.Client(project=project_id)
     query = f"""SELECT * FROM `{project_id}.{table_name}` WHERE ORIGEN = @origen LIMIT 1000;"""
-    job_config = bq.QueryJobConfig(query_parameters=[bq.ScalarQueryParameter("origen", "STRING", "7793397010020")])
+    job_config = bq.QueryJobConfig(
+        query_parameters=[bq.ScalarQueryParameter("origen", "STRING", "7793397010020")]
+    )
     results = client.query_and_wait(query, job_config=job_config)  # Make an API request.
     assert 4 == results.total_rows
     pass

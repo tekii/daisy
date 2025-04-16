@@ -62,7 +62,15 @@ def test_attachment_ids_since(caplog, the_patched_inbox):
         start_history_id=4255018,
         credentials=delegated_credentials,
     ):
-        print(history_id, message_id, message_from, message_date, message_subject, attachment_id, filename)
+        print(
+            history_id,
+            message_id,
+            message_from,
+            message_date,
+            message_subject,
+            attachment_id,
+            filename,
+        )
         print()
 
     print(caplog.records)

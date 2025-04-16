@@ -1,13 +1,14 @@
-from helpers import configuration as config
-from inbox import AttachmentData
 from google.cloud.bigquery import (
-    Table,
-    SchemaField,
-    ScalarQueryParameter,
     QueryJobConfig,
+    ScalarQueryParameter,
+    SchemaField,
+    Table,
 )
 
-__all__ = ["init", "create_table", "insert"]
+from helpers import configuration as config
+from inbox import AttachmentData
+
+__all__ = ["create_table", "insert"]
 
 _TABLE = "attachments"
 
@@ -41,9 +42,12 @@ def insert(row: AttachmentData):
     assert config.the_bq_client is not None
 
     query = f"""INSERT `{config.DATASET}.{_TABLE}` (
-history_id, message_id, message_from, message_date, message_subject, attachment_id, filename
-) VALUES ( 
-@history_id, @message_id, @message_from, @message_date, @message_subject, @attachment_id, @filename);"""
+        history_id, message_id, message_from, message_date,
+        message_subject, attachment_id, filename
+    ) VALUES (
+        @history_id, @message_id, @message_from, @message_date,
+        @message_subject, @attachment_id, @filename
+    );"""
     job_config = QueryJobConfig(
         query_parameters=[
             ScalarQueryParameter("history_id", "INTEGER", row.history_id),

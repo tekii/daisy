@@ -8,7 +8,6 @@ from cloudevents.http import CloudEvent  # , to_structured
 from cloudevents.conversion import to_structured
 from functions_framework import create_app
 
-
 # import pretend
 # @pytest.fixture(autouse=True)
 # def mock_environment(monkeypatch):
@@ -16,8 +15,10 @@ from functions_framework import create_app
 #    # from main import DAISY_SUBJECT_ACCOUNTS
 #
 #    # _env = os.environ.copy()
-#    # os.environ["INGESTOR_SUBJECTS_ACCOUNTS"] = "PR@legacy.tekii.com.ar;QUEUE@margot.tekii.com.ar;queue@margot.tekii.com.ar"
-#    monkeypatch.setenv("INGESTOR_SUBJECTS", "PR@legacy.tekii.com.ar;QUEUE@margot.tekii.com.ar;queue@margot.tekii.com.ar")
+#    # os.environ["INGESTOR_SUBJECTS_ACCOUNTS"] =
+#        "PR@legacy.tekii.com.ar;QUEUE@margot.tekii.com.ar;queue@margot.tekii.com.ar"
+#    monkeypatch.setenv("INGESTOR_SUBJECTS",
+#                       "PR@legacy.tekii.com.ar;QUEUE@margot.tekii.com.ar;queue@margot.tekii.com.ar")
 #    try:
 #        yield
 #    finally:
@@ -54,23 +55,25 @@ def message_encode_helper(payload: Any) -> str:
 @pytest.fixture
 def mock_ce():
     attributes = {
-        #'specversion': '1.0',
-        #'id': '4707084296741162',
+        # 'specversion': '1.0',
+        # 'id': '4707084296741162',
         "source": "//pubsub.googleapis.com/projects/daisy-dev01/topics/ingestor-queue",
         "type": "google.cloud.pubsub.topic.v1.messagePublished",
-        #'datacontenttype': 'application/json',
-        #'time': '2022-07-18T23:07:39.111Z'
+        # 'datacontenttype': 'application/json',
+        # 'time': '2022-07-18T23:07:39.111Z'
     }
     data = {
         "message": {
             # https://cloud.google.com/pubsub/docs/reference/rest/v1/PubsubMessage
-            "data": "eyJlbWFpbEFkZHJlc3MiOiJwckBsZWdhY3kudGVraWkuY29tLmFyIiwiaGlzdG9yeUlkIjoxMzYxNzAwMH0=",
+            "data": (
+                "eyJlbWFpbEFkZHJlc3MiOiJwckBsZWdhY3kudGVraWkuY29tLmFyIiwiaGlzdG9yeUlkIjoxMzYxNzAwMH0="  # noqa: E501
+            ),
             # "messageId": "4707084296741162",
             # "message_id": "4707084296741162",
             # "publishTime": "2022-07-18T23:07:39.111Z",
             # "publish_time": "2022-07-18T23:07:39.111Z",
         },
-        # "subscription": "projects/daisy-dev01/subscriptions/eventarc-us-central1-function-5-637946-sub-190",
+        # "subscription": "projects/daisy-dev01/subscriptions/eventarc-us-central1-function-5-637946-sub-190", # noqa: E501
     }
     return CloudEvent(attributes=attributes, data=data)
 
@@ -90,7 +93,9 @@ def test_02(capsys, mock_ce):
     from main import the_function
 
     event = mock_ce
-    event.data["message"]["data"] = message_encode_helper(payload={"emailAddress": "pr@legacy.tekii.com.ar", "historyId": "13617000"})
+    event.data["message"]["data"] = message_encode_helper(
+        payload={"emailAddress": "pr@legacy.tekii.com.ar", "historyId": "13617000"}
+    )
     the_function(event)
     out, _ = capsys.readouterr()
     # assert "pr@legacy.tekii.com.ar\n13617000\n" == out
@@ -110,7 +115,9 @@ def test_01(client, mock_ce):
     headers, data = to_structured(ce)
     response = client.post("/", headers=headers, data=data)
     assert response.status_code == 500
-    assert response.data == b"500 Internal Server Error: NOT the cloud_event type expected: wrong-type"
+    assert (
+        response.data == b"500 Internal Server Error: NOT the cloud_event type expected: wrong-type"
+    )
 
 
 # def test_05(capsys, mock_ce, monkeypatch):
@@ -130,7 +137,10 @@ def test_07(client, mock_ce, monkeypatch):
     headers, data = to_structured(mock_ce)
     response = client.post("/", headers=headers, data=data)
     assert response.status_code == 500
-    assert response.data == b"500 Internal Server Error: DAISY_SUBJECT_ACCOUNTS is not set or its empty."
+    assert (
+        response.data
+        == b"500 Internal Server Error: DAISY_SUBJECT_ACCOUNTS is not set or its empty."
+    )
 
 
 def test_08(client, mock_ce, monkeypatch):
@@ -141,7 +151,10 @@ def test_08(client, mock_ce, monkeypatch):
     headers, data = to_structured(mock_ce)
     response = client.post("/", headers=headers, data=data)
     assert response.status_code == 500
-    assert response.data == b"500 Internal Server Error: DAISY_SUBJECT_ACCOUNTS is not set or its empty."
+    assert (
+        response.data
+        == b"500 Internal Server Error: DAISY_SUBJECT_ACCOUNTS is not set or its empty."
+    )
 
 
 def test_09(client, mock_ce):
@@ -151,7 +164,10 @@ def test_09(client, mock_ce):
     headers, data = to_structured(ce)
     response = client.post("/", headers=headers, data=data)
     assert response.status_code == 500
-    assert response.data == b"500 Internal Server Error: Exception decoding PubSub message: KeyError('data')"
+    assert (
+        response.data
+        == b"500 Internal Server Error: Exception decoding PubSub message: KeyError('data')"
+    )
 
 
 def test_19(caplog, the_function_test_client, mock_ce):
@@ -171,7 +187,7 @@ def test_19(caplog, the_function_test_client, mock_ce):
     response = the_function_test_client.post("/", headers=headers, data=data)
 
     assert response.status_code == 200
-    # assert response.data == b"500 Internal Server Error: 'subject' is not in DAISY_SUBJECT_ACCOUNTS."
+    # assert response.data == b"500 Internal Server Error: 'subject' is not in DAISY_SUBJECT_ACCOUNTS." # noqa: E501
 
     print(caplog.records)
 

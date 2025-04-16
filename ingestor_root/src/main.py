@@ -1,14 +1,13 @@
-from os import getenv
-from sys import exit
 import base64
 import json
+
 import functions_framework
 from flask import abort
 
-from helpers import configuration as config
-import inbox
-import history
 import attachment
+import history
+import inbox
+from helpers import configuration as config
 
 
 # Triggered from a message on a Cloud Pub/Sub topic ingestor-queue.
@@ -49,7 +48,8 @@ def the_function(cloud_event):
             credentials=inbox_credentials,
         ):
             config.logger.info(
-                f"msg_id:{attachment_data.message_id} date:{attachment_data.message_date} filename:{attachment_data.filename}"
+                f"msg_id:{attachment_data.message_id} date:{attachment_data.message_date}"
+                " filename:{attachment_data.filename}"
             )
             attachment.insert(attachment_data)
 

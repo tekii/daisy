@@ -1,18 +1,16 @@
 #!/usr/bin/env python3
 
+# import configparser
 import sys
-import configparser
+import time
 
 import google.auth
-from google.oauth2 import service_account
 from google.auth.exceptions import GoogleAuthError
-
+from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 # import httplib2
-
-import time
 
 
 def main(argv):
@@ -29,7 +27,7 @@ def main(argv):
         project = None
         if not project:
             credentials = service_account.Credentials.from_service_account_file(
-                #'daisy-dev01-01822f99f16b.json',
+                # 'daisy-dev01-01822f99f16b.json',
                 "../.secrets/mock_credentials.json",
                 scopes=[scopes],
                 subject="queue@margot.tekii.com.ar",  # argv[1],

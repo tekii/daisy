@@ -1,9 +1,8 @@
-#
-"""Helpers for the BigQueryClient and credentials.
-"""
+"""Helpers for the BigQueryClient and credentials."""
+
+import logging
 from os import getenv
 from sys import exit
-import logging
 
 from google.auth import default as default_credentials
 from google.auth.exceptions import DefaultCredentialsError

@@ -1,0 +1,16 @@
+[project]
+name = "ingestor"
+
+[tool.pytest.ini_options]
+addopts = [ "--cov=src", ]
+pythonpath = "src"
+testpaths = [ "tests", ]
+
+[tool.coverage.run]
+omit = ["tests/**"]
+
+[tool.isort]
+profile = "black"
+src_paths = "src"
+skip = [".gitignore", ".dockerignore"]
+extend_skip_glob = ["tests/*"]

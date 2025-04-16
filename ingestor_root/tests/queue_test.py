@@ -1,16 +1,15 @@
-import pytest
+from event import append_events_rows
 
 
-from ingest.event import append_events_rows
-
-
-def test_ingest(test_runner_service_account_credentials):
+def test_ingest(test_runner_service_account_credentials: None):
     import inbox
 
     table_name = "orange.append_events_rows_tests_2"
     table_id = f"{inbox.config.PROJECT}.{table_name}"
 
-    delegated_credentials = inbox.get_delegated_credentials_or_die(subject="queue@margot.tekii.com.ar")
+    delegated_credentials = inbox.get_delegated_credentials_or_die(
+        subject="queue@margot.tekii.com.ar"
+    )
 
     for (
         stream,
