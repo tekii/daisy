@@ -20,7 +20,7 @@ if 2 < len(sys.argv) < 5:
 
         print(
             f"VERSION file is now {version}, API version{version.major}"
-            " is valid {version.minor} seconds since {valid_since}"
+            f" is valid {version.minor} seconds since {valid_since}"
         )
 
     except Exception as e:
