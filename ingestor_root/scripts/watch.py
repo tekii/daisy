@@ -28,7 +28,7 @@ def main(argv):
         if not project:
             credentials = service_account.Credentials.from_service_account_file(
                 # 'daisy-dev01-01822f99f16b.json',
-                "../.secrets/mock_credentials.json",
+                "../../.secrets/mock_credentials.json",
                 scopes=[scopes],
                 subject="queue@margot.tekii.com.ar",  # argv[1],
             )

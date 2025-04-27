@@ -8,7 +8,7 @@ if ! ((  0 <= "$ATTEMPT" && "$ATTEMPT" <= 99 )); then echo "Invalid ATTEMPT_SUFF
 fi
 ATTEMPT_SUFFIX="-${ATTEMPT}"
 # account
-BUILD_ACCOUNT_NAME=${PACKAGE_NAME}-deploy${ATTEMPT_SUFFIX}
+BUILD_ACCOUNT_NAME=${PACKAGE_NAME}-build${ATTEMPT_SUFFIX}
 if [ ${#BUILD_ACCOUNT_NAME} -ge 30 ]; then echo "BUILD_ACCOUNT_NAME too long"; exit 1 
 else echo $BUILD_ACCOUNT_NAME ${#BUILD_ACCOUNT_NAME}
 fi

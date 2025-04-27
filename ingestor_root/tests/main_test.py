@@ -1,11 +1,13 @@
-import json
 import base64
+import json
 import pathlib
-import pytest
-
 from typing import Any
-from cloudevents.http import CloudEvent  # , to_structured
+
+import pytest
 from cloudevents.conversion import to_structured
+from cloudevents.http import CloudEvent  # , to_structured
+
+# from flask import testing
 from functions_framework import create_app
 
 # import pretend
@@ -28,7 +30,7 @@ from functions_framework import create_app
 
 
 @pytest.fixture
-def the_function_(test_runner_service_account_credentials):
+def the_function_():
     # ensures default credentials are patched
     from main import the_function
 
@@ -36,12 +38,13 @@ def the_function_(test_runner_service_account_credentials):
 
 
 @pytest.fixture
-def the_function_test_client(test_runner_service_account_credentials):
-    source = pathlib.Path(__file__).resolve().parent / "main.py"
+def test_client():
+    source = pathlib.Path("src/main.py")
     target = "the_function"
-    _app = create_app(target, source, "cloudevent")
-    # _app.testing = True
-    return _app.test_client()
+    app = create_app(target, source, "cloudevent")
+    app.testing = True
+    with app.test_client() as client:
+        yield client
 
 
 def message_encode_helper(payload: Any) -> str:
@@ -101,10 +104,10 @@ def test_02(capsys, mock_ce):
     # assert "pr@legacy.tekii.com.ar\n13617000\n" == out
 
 
-def test_00(client, mock_ce):
+def test_00(test_client, mock_ce):
     ce = mock_ce
     headers, data = to_structured(ce)
-    response = client.post("/", headers=headers, data=data)
+    response = test_client.post("/", headers=headers, data=data)
     assert response.status_code == 200
     assert response.data == b"OK"
 

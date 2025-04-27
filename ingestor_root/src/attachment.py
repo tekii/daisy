@@ -6,7 +6,7 @@ from google.cloud.bigquery import (
 )
 
 from helpers import configuration as config
-from inbox import AttachmentData
+from mail.history import AttachmentData
 
 __all__ = ["create_table", "insert"]
 

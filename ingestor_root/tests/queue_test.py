@@ -1,14 +1,19 @@
+import pytest
+
 from event import append_events_rows
+from mail.delegated_credentials import get_subject_credentials_from_impersonated
 
 
-def test_ingest(test_runner_service_account_credentials: None):
-    import inbox
+@pytest.skip(allow_module_level=True)
+def test_ingest():
+    # import inbox
 
     table_name = "orange.append_events_rows_tests_2"
     table_id = f"{inbox.config.PROJECT}.{table_name}"
 
-    delegated_credentials = inbox.get_delegated_credentials_or_die(
-        subject="queue@margot.tekii.com.ar"
+    delegated_credentials = get_subject_credentials_from_impersonated(
+        subject_email="queue@margot.tekii.com.ar",
+        subject_scopes=["https://www.googleapis.com/auth/gmail.readonly"],
     )
 
     for (

@@ -1,6 +1,9 @@
+--extra-index-url https://${PYTHON_REPO_URL}/simple/
 cloudevents
 functions-framework
+google-cloud-logging
 google-api-python-client
 google-cloud-bigquery-storage
 pandas
 pandas-gbq
+tekii-margot-bundle>=1,<2

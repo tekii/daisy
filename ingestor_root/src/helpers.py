@@ -7,31 +7,9 @@ from sys import exit
 from google.auth import default as default_credentials
 from google.auth.exceptions import DefaultCredentialsError
 from google.cloud.bigquery import Client as BigQueryClient
+from tekii.margot.toolbox.singleton import Singleton
 
 __all__ = ["configuration"]
-
-_logger = logging.getLogger("INGESTOR")
-
-
-class Singleton(type):
-
-    def __call__(cls, *args, **kwargs):
-        if cls._the_instance is None:
-            instance = cls.__new__(cls, *args, **kwargs)
-            instance.__init__(*args, **kwargs)
-            cls._the_instance = instance
-        else:
-            instance = cls._the_instance
-        return instance
-
-    def __new__(cls, name, bases, dct):
-        instance = super().__new__(cls, name, bases, dct)
-        # add the class variable to store the instance
-        instance._the_instance = None
-        return instance
-
-    # def __init__(cls, name, bases, dct):
-    #    pass
 
 
 class _Configuration(object, metaclass=Singleton):
@@ -40,13 +18,13 @@ class _Configuration(object, metaclass=Singleton):
 
         value = getenv("DATASET")
         if value is None:
-            _logger.fatal("DATASET is not defined.")
+            logging.fatal("DATASET is not defined.")
             exit(1)
         self._dataset: str = value
 
         value = getenv("SUBJECTS")
         if value is None:
-            _logger.fatal("SUBJECTS is not defined.")
+            logging.fatal("SUBJECTS is not defined.")
             exit(1)
         else:
             self._subjects = value
@@ -55,7 +33,7 @@ class _Configuration(object, metaclass=Singleton):
             self._credentials, self._project = default_credentials()
             self._client = BigQueryClient(project=self._project, credentials=self._credentials)
         except DefaultCredentialsError as e:
-            _logger.fatal(f"Some problem  w/ credentials or the bigquery client {repr(e)}")
+            logging.fatal(f"Some problem  w/ credentials or the bigquery client {repr(e)}")
             exit(1)
 
     @property

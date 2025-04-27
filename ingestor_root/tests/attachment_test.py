@@ -3,7 +3,7 @@ from email.utils import parsedate_to_datetime
 
 
 @pytest.fixture()
-def the_attachment_module(test_runner_service_account_credentials):
+def the_attachment_module():
     # remember, first monkeypatch the credentials, then import the module,
     # and i'm not sure if type annotate the return defeat the purpose
     import attachment
