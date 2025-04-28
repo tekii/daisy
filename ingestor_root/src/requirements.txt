@@ -1,5 +1,4 @@
 --extra-index-url https://${PYTHON_REPO_URL}/simple/
-cloudevents
 functions-framework
 google-cloud-logging
 google-api-python-client
