@@ -3,9 +3,10 @@ from googleapiclient.discovery import build  # type: ignore[import-untyped]
 from mail.delegated_credentials import get_subject_credentials_from_impersonated
 
 
-def test_get_dwd_credentials():
+def test_get_subject_credentials_from_impersonated(delegate_credentials):
 
     credentials = get_subject_credentials_from_impersonated(
+        delegate=delegate_credentials,
         subject_email="queue@margot.tekii.com.ar",
         subject_scopes=["https://www.googleapis.com/auth/gmail.readonly"],
         lifetime=360,

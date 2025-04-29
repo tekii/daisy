@@ -4,12 +4,13 @@ import mail.history
 
 
 @pytest.fixture(autouse=True)
-def authorized_client():
+def authorized_client(delegate_credentials):
     from googleapiclient.discovery import build  # type: ignore[import-untyped]
 
     from mail.delegated_credentials import get_subject_credentials_from_impersonated
 
     credentials = get_subject_credentials_from_impersonated(
+        delegate=delegate_credentials,
         subject_email="queue@margot.tekii.com.ar",
         subject_scopes=["https://www.googleapis.com/auth/gmail.readonly"],
         lifetime=360,

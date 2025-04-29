@@ -53,3 +53,20 @@ def test_environment(monkeypatch):
 
     finally:
         monkeypatch.undo()
+
+
+@pytest.fixture(autouse=False)
+def delegate_credentials():
+    from google.auth import default, impersonated_credentials
+
+    source_credentials, _ = default()
+    # this is the intermediate service account w/ wide domain delegation granted
+    # and access to the history_id table
+    delegate_credentials = impersonated_credentials.Credentials(
+        source_credentials=source_credentials,
+        target_principal="ingestor@daisy-dev01.iam.gserviceaccount.com",
+        target_scopes=["https://www.googleapis.com/auth/cloud-platform"],
+        lifetime=3600,
+    )
+
+    return delegate_credentials

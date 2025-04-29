@@ -5,6 +5,7 @@ from os import getenv
 
 import functions_framework
 from flask import abort, jsonify
+from google.auth import default, impersonated_credentials
 from googleapiclient.discovery import build  # type: ignore[import-untyped]
 
 # import attachment
@@ -59,6 +60,7 @@ def handle_(e):
 @functions_framework.cloud_event
 def the_function(cloud_event):
     global _SUBJECTS
+    global _INGESTOR_SERVICE_ACCOUNT_EMAIL
 
     # is the event type I expect?
     if cloud_event["type"] != "google.cloud.pubsub.topic.v1.messagePublished":
@@ -82,6 +84,17 @@ def the_function(cloud_event):
             description=(f"Exception decoding PubSub message: {repr(e)}"),
         )
 
+    # this is test-runner or the service account
+    source_credentials, _ = default()
+    # this is the intermediate service account w/ wide domain delegation granted
+    # and access to the history_id table
+    delegate_credentials = impersonated_credentials.Credentials(
+        source_credentials=source_credentials,
+        target_principal=_INGESTOR_SERVICE_ACCOUNT_EMAIL,
+        target_scopes=["https://www.googleapis.com/auth/cloud-platform"],
+        lifetime=3600,
+    )
+
     # validate subject
     subjects = _SUBJECTS.lower().split(";")
     if subject not in subjects:
@@ -91,6 +104,7 @@ def the_function(cloud_event):
 
     # gets the credentials with the queue inbox access
     subject_credentials = get_subject_credentials_from_impersonated(
+        delegate=delegate_credentials,
         subject_email=subject,
         subject_scopes=["https://www.googleapis.com/auth/gmail.readonly"],
     )
@@ -135,6 +149,12 @@ def the_function(cloud_event):
         # save the new history_id
         history.save_id(new_history_id)
 
+
+_INGESTOR_SERVICE_ACCOUNT_EMAIL: str = getenv("INGESTOR_SERVICE_ACCOUNT_EMAIL", None)
+if _INGESTOR_SERVICE_ACCOUNT_EMAIL is None:
+    # TODO log
+    logging.fatal("INGESTOR_SERVICE_ACCOUNT_EMAIL is not defined.")
+    exit(1)
 
 _SUBJECTS = getenv("SUBJECTS")
 if _SUBJECTS is None:
