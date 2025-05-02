@@ -1,6 +1,6 @@
 import pytest
 
-import mail.history
+import mail.queue
 
 
 @pytest.fixture(autouse=True)
@@ -24,7 +24,7 @@ def test_for_each_mail_and_each_attachment(authorized_client):
 
     start_history_id = 4365464
 
-    for message_id, history_id in mail.history.each_messages_added_since(
+    for message_id, history_id in mail.queue.each_messages_added_since(
         start_history_id=start_history_id,
         client=authorized_client,
     ):
@@ -32,7 +32,7 @@ def test_for_each_mail_and_each_attachment(authorized_client):
         assert history_id is not None
         break
 
-    for attachment_data in mail.history.each_attachment_in_message(
+    for attachment_data in mail.queue.each_attachment_in_message(
         message_id=message_id,
         client=authorized_client,
     ):
@@ -40,7 +40,7 @@ def test_for_each_mail_and_each_attachment(authorized_client):
         assert attachment_data.message_id != 0
         break
 
-    stream = mail.history.get_attachment(
+    stream = mail.queue.get_attachment(
         attachment_id=attachment_data.attachment_id,
         message_id=attachment_data.message_id,
         client=authorized_client,
@@ -54,13 +54,13 @@ def test_expired_history_id(authorized_client):
 
     start_history_id = 4203500
 
-    with pytest.raises(mail.history.HistoryIdExpiredError) as e:
-        for message_id, history_id in mail.history.each_messages_added_since(
+    with pytest.raises(mail.queue.HistoryIdExpiredError) as e:
+        for message_id, history_id in mail.queue.each_messages_added_since(
             start_history_id=start_history_id,
             client=authorized_client,
         ):
             assert message_id != 0
             assert history_id is not None
             break
-    assert e.type == mail.history.HistoryIdExpiredError
+    assert e.type == mail.queue.HistoryIdExpiredError
     # assert e.status == 404
