@@ -1,3 +1,5 @@
+import logging
+
 import pytest
 
 import mail.queue
@@ -45,7 +47,9 @@ def test_for_each_mail_and_each_attachment(subject_credentials):
     pass
 
 
-def test_expired_history_id(subject_credentials):
+def test_expired_history_id(subject_credentials, caplog):
+
+    caplog.set_level(logging.ERROR)
 
     start_history_id = 4203500
 
@@ -59,4 +63,6 @@ def test_expired_history_id(subject_credentials):
             assert history_id is not None
             break
     assert e.type == mail.queue.HistoryIdExpiredError
+    assert len(caplog.records) == 1
+    assert caplog.records.pop().levelno == logging.CRITICAL
     # assert e.status == 404

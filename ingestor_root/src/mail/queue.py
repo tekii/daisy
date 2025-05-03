@@ -75,6 +75,7 @@ class Queue:
                 if e.resp.status == 404:
                     h = HistoryIdExpiredError()
                     h.history_id = start_history_id
+                    logging.log(level=logging.CRITICAL, msg="History expired")
                     raise h from e
                 else:
                     raise e

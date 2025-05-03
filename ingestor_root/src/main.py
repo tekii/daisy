@@ -125,10 +125,6 @@ def the_function(cloud_event):
                     f"filename:{attachment_data.filename}",
                     extra={},
                 )
-                logging.info(
-                    f"msg_id:{attachment_data.message_id} date:{attachment_data.message_date}"
-                    f" filename:{attachment_data.filename}"
-                )
                 #
                 stream = queue.get_attachment(
                     attachment_id=attachment_data.attachment_id,
