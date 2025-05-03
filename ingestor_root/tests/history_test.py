@@ -1,74 +1,53 @@
-from typing import Any, Generator
-from types import ModuleType
 import pytest
-from google.cloud import bigquery as bq
+from google.auth import default
+from google.cloud.bigquery import Client
 
 
 @pytest.fixture()
-def the_history_module(test_runner_service_account_credentials) -> Generator[ModuleType, Any, None]:
-    # remember, first monkeypatch the credentials, then import the module,
-    # and i'm not sure if type annotate the return defeat the purpose
-    # from google.auth import default as default_credentials
+def the_history_module_and_stuff():
     import history
 
-    # credentials, project = default_credentials()
-    # client = bq.Client(project=project, credentials=credentials)
-    # history.init(client, project)
+    _DATASET = "orange"
+    #
+    table_name = history._TABLE + "_test"
+    history._TABLE = table_name
 
-    yield history
+    credentials, project = default()
+    client: Client = Client(credentials=credentials)
+    client.delete_table(table=f"{project}.{_DATASET}.{table_name}", not_found_ok=True)
+
+    yield history, _DATASET, credentials
+
+    client.delete_table(table=f"{project}.{_DATASET}.{table_name}", not_found_ok=False)
+
     del history
 
 
-def test_table_creation(the_history_module):
-    import history
+def test_table_creation(the_history_module_and_stuff):
 
-    #
-    table_name = the_history_module._TABLE + "_test"
-    the_history_module._TABLE = table_name
+    history, dataset, credentials = the_history_module_and_stuff
 
-    history.config.the_bq_client.delete_table(
-        table=f"{history.config.PROJECT}.{history.config.DATASET}.{table_name}",
-        not_found_ok=True,
-    )
+    history_id = history.HistoryId(dataset=dataset, credentials=credentials)
 
-    the_history_module.create_table(0)
-    id = the_history_module.get_id()
-    assert id is None
+    history_id.create_table(0)
 
-    history.config.the_bq_client.delete_table(
-        table=f"{history.config.PROJECT}.{history.config.DATASET}.{table_name}",
-        not_found_ok=False,
-    )
+    id = history_id.last_id
+
+    assert id is not None and id == 0
 
 
-def test_save_id(the_history_module):
-    import history
+def test_update_id(the_history_module_and_stuff):
 
-    table_name = the_history_module._TABLE
-    # the_history_module._TABLE_NAME = table_name
+    history, dataset, credentials = the_history_module_and_stuff
 
-    the_history_module.save_id(4255018)
+    history_id = history.HistoryId(dataset=dataset, credentials=credentials)
 
-    query = f"""SELECT id FROM `{history.config.PROJECT}.{history.config.DATASET}.{table_name}`
-    WHERE id = @id LIMIT 10;"""
-    job_config = bq.QueryJobConfig(
-        query_parameters=[bq.ScalarQueryParameter("id", "INTEGER", 4255018)]
-    )
-    results = history.config.the_bq_client.query_and_wait(
-        query, job_config=job_config, project=history.config.PROJECT
-    )  # Make an API request.
+    history_id.create_table(0)
 
-    assert 1 == results.total_rows
+    id = history_id.last_id
 
-    id = the_history_module.get_id()
-    assert id == 4255018
+    assert id is not None and id == 0
 
+    history_id.last_id = 4255018
 
-# def test_table_insert(the_test_client, the_ingest_module):
-#    from datetime import datetime
-#
-#    credentials, project = the_test_client
-#    client = bigquery.Client(project=project, credentials=credentials)
-#
-#    the_ingest_module.insert_attachment(
-#       client, project, 0, "aaaa", "q@a.b", datetime.now(), "test", "bbbb", "FILE.TXT")
+    assert history_id.last_id == 4255018
