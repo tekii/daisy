@@ -6,18 +6,12 @@ from os import getenv
 import functions_framework
 from flask import abort, jsonify
 from google.auth import default, impersonated_credentials
-from googleapiclient.discovery import build  # type: ignore[import-untyped]
 
 # import attachment
-import history
+from history import HistoryId
 
-# from helpers import configuration as config
 from mail.delegated_credentials import get_subject_credentials_from_impersonated
-from mail.history import (
-    each_attachment_in_message,
-    each_messages_added_since,
-    get_attachment,
-)
+from mail.queue import Queue
 
 if __name__ != "__main__" and __name__ != "__test__":
     import google.cloud.logging
@@ -56,9 +50,12 @@ def handle_(e):
 #    return jsonify([error]), e.code
 
 
+# ENTRY POINT ENTRY POINT ENTRY POINT
 # Triggered from a message on a Cloud Pub/Sub topic ingestor-queue.
+# ENTRY POINT ENTRY POINT ENTRY POINT
 @functions_framework.cloud_event
 def the_function(cloud_event):
+    global _DATASET
     global _SUBJECTS
     global _INGESTOR_SERVICE_ACCOUNT_EMAIL
 
@@ -109,26 +106,23 @@ def the_function(cloud_event):
         subject_scopes=["https://www.googleapis.com/auth/gmail.readonly"],
     )
 
-    # create the client to get the mails
-    client = build("gmail", "v1", credentials=subject_credentials)
-
-    # recover the previus historyId
-    last_history_id = history.get_id()
-    if last_history_id is not None:
-        # iterate over
-        for message_id, _ in each_messages_added_since(
-            start_history_id=last_history_id,
-            client=client,
+    with (
+        HistoryId(dataset=_DATASET, credentials=delegate_credentials) as history_id,
+        Queue(credentials=subject_credentials) as queue,
+    ):
+        # recover since previus historyId
+        for message_id, _ in queue.each_messages_added_since(
+            start_history_id=history_id.last_id,
         ):
             #
-            for attachment_data in each_attachment_in_message(
+            for attachment_data in queue.each_attachment_in_message(
                 message_id=message_id,
-                client=client,
             ):
                 logging.log(
                     level=logging.INFO,
-                    msg=f"msg_id:{attachment_data.message_id} date:{attachment_data.message_date}"
-                    " filename:{attachment_data.filename}",
+                    msg=f"msg_id:{attachment_data.message_id} "
+                    f"date:{attachment_data.message_date} "
+                    f"filename:{attachment_data.filename}",
                     extra={},
                 )
                 logging.info(
@@ -136,27 +130,28 @@ def the_function(cloud_event):
                     f" filename:{attachment_data.filename}"
                 )
                 #
-                stream = get_attachment(
+                stream = queue.get_attachment(
                     attachment_id=attachment_data.attachment_id,
                     message_id=attachment_data.message_id,
-                    client=client,
                 )
 
                 # attachment.insert(attachment_data)
 
-    # TODO when is ok to find None here?
-    if new_history_id is not None:
-        # save the new history_id
-        history.save_id(new_history_id)
+        # TODO when is ok to find None here?
+        if new_history_id is not None:
+            # save the new history_id
+            history_id.last_id = new_history_id
 
 
-_INGESTOR_SERVICE_ACCOUNT_EMAIL: str = getenv("INGESTOR_SERVICE_ACCOUNT_EMAIL", None)
-if _INGESTOR_SERVICE_ACCOUNT_EMAIL is None:
-    # TODO log
-    logging.fatal("INGESTOR_SERVICE_ACCOUNT_EMAIL is not defined.")
-    exit(1)
+def _getenv_or_die(key: str) -> str:
+    value = getenv(key=key, default=None)
+    if value is None:
+        logging.fatal(f"{key} is not defined")
+        exit(1)
 
-_SUBJECTS = getenv("SUBJECTS")
-if _SUBJECTS is None:
-    logging.fatal("SUBJECTS is not defined.")
-    exit(1)
+    return value
+
+
+_DATASET = _getenv_or_die("DATASET")
+_INGESTOR_SERVICE_ACCOUNT_EMAIL = _getenv_or_die("INGESTOR_SERVICE_ACCOUNT_EMAIL")
+_SUBJECTS = _getenv_or_die("SUBJECTS")
